@@ -1,13 +1,13 @@
 import { Helmet } from "react-helmet";
 
-export const Admin = () => {
+export const PrivacyPolicy = () => {
   return (
     <>
       <Helmet>
-        <title>Admin</title>
+        <title>Privacy Policy</title>
       </Helmet>
       <div>
-        <h1>Admin Page</h1>
+        <h1>PrivacyPolicy</h1>
       </div>
     </>
   );

@@ -1,13 +1,13 @@
 import { Helmet } from "react-helmet";
 
-export const Admin = () => {
+export const Vote = () => {
   return (
     <>
       <Helmet>
-        <title>Admin</title>
+        <title>Vote</title>
       </Helmet>
       <div>
-        <h1>Admin Page</h1>
+        <h1>Vote</h1>
       </div>
     </>
   );
