@@ -7,6 +7,7 @@ import { Admin } from "./routes/admin";
 import { Auth } from "./routes/auth";
 import { SignIn } from "./routes/auth/sign-in";
 import { SignUp } from "./routes/auth/sign-up";
+import { Voter } from "./routes/voter";
 import { NotFound } from "./routes/not-found";
 import { Vote } from "./routes/vote";
 import { PrivacyPolicy } from "./routes/privacy-policy";
@@ -25,14 +26,12 @@ import {
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 
 function App() {
-  // you can use Mainnet, Devnet or Testnet here
   const solNetwork = WalletAdapterNetwork.Mainnet;
   const endpoint = useMemo(() => clusterApiUrl(solNetwork), [solNetwork]);
-  // initialise all the wallets you want to use
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
-      new SolflareWalletAdapter({ solNetwork }),
+      new SolflareWalletAdapter(),
       new TorusWalletAdapter(),
       new LedgerWalletAdapter(),
     ],
@@ -58,6 +57,7 @@ function App() {
                       <Route path={Index.AUTH_SIGN_IN()} element={<SignIn />} />
                       <Route path={Index.AUTH()} element={<SignIn />} />
                     </Route>
+                    <Route path={Index.VOTER()} element={<Voter />} />
                     <Route path={Index.VOTE()} element={<Vote />} />
                     <Route
                       path={Index.PRIVACY_POLICY()}
