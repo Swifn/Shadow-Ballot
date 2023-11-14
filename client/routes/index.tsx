@@ -4,6 +4,7 @@ export const Routes = {
   AUTH_SIGN_UP: () => `${Routes.AUTH()}/sign-up`,
   AUTH_SIGN_IN: () => `${Routes.AUTH()}/sign-in`,
   NOT_FOUND: () => `/404`,
-  VOTE: () => `/vote`,
+  VOTER: (uid?: string) => `/voter/${uid ?? ":uid"}`,
+  VOTE: (vid?: string) => `vote/${vid ?? ":vid"}`,
   PRIVACY_POLICY: () => `/privacy-policy`,
 };
