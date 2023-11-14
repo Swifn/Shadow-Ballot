@@ -1,3 +1,6 @@
+@use '@carbon/react/scss/themes' as *;
+@use '@carbon/react';
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
