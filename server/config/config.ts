@@ -1,0 +1,5 @@
+export const Config = {
+  PORT: 5000,
+  VITE_PORT: 5173,
+  ORG_EMAIL_REGEX: /^[\w+.?]+@(student\.)?bham\.ac\.uk$/g,
+};
