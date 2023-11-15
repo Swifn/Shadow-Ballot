@@ -1,14 +1,17 @@
 import { Helmet } from "react-helmet";
+import { AuthenticatedRoute } from "../../components/conditional-route";
 
 export const Vote = () => {
   return (
-    <>
-      <Helmet>
-        <title>Vote</title>
-      </Helmet>
+    <AuthenticatedRoute>
       <div>
-        <h1>Vote</h1>
+        <Helmet>
+          <title>Vote</title>
+        </Helmet>
+        <div>
+          <h1>Vote</h1>
+        </div>
       </div>
-    </>
+    </AuthenticatedRoute>
   );
 };

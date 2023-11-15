@@ -1,13 +1,15 @@
-import { Helmet } from "react-helmet";
 import styles from "./style.module.scss";
 import { Outlet } from "react-router-dom";
+import { AnonymousRoute } from "../../components/conditional-route";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 export const Auth = () => {
+  const { connection } = useConnection();
+  const { publicKey } = useWallet();
+
+  console.log(publicKey);
   return (
-    <>
-      <Helmet>
-        <title>SVS Chain</title>
-      </Helmet>
+    <AnonymousRoute>
       <div className={styles.container}>
         <main>
           <h1>SVS Chain</h1>
@@ -16,6 +18,6 @@ export const Auth = () => {
           </div>
         </main>
       </div>
-    </>
+    </AnonymousRoute>
   );
 };
