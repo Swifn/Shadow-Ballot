@@ -1,5 +1,5 @@
 export const Config = {
-  PORT: 5000,
+  PORT: 8080,
   VITE_PORT: 5173,
   ORG_EMAIL_REGEX: /^[\w+.?]+@(student\.)?bham\.ac\.uk$/g,
 };

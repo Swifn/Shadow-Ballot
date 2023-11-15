@@ -1,0 +1,13 @@
+{
+  "include": ["server", "server/**/*.json"],
+  "compilerOptions": {
+    "composite": true,
+    "esModuleInterop": true,
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "target": "ESNext",
+    "module": "NodeNext"
+  }
+}
