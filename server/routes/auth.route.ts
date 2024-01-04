@@ -6,8 +6,8 @@ export const authRouter = Router();
 
 authRouter.post(
   "/sign-up",
-  [ensurePayload(["voterId", "email", "password1", "password2"])],
+  [ensurePayload(["email", "password1", "password2"])],
   signUp
 );
 
-authRouter.post("/sign-in", [ensurePayload(["voterId", "password"])], signIn);
+authRouter.post("/sign-in", [ensurePayload(["email", "password"])], signIn);
