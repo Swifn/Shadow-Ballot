@@ -13,7 +13,7 @@ export class Voter extends Model<
   InferAttributes<Voter>,
   InferCreationAttributes<Voter>
 > {
-  declare voterId: string;
+  declare voterId: CreationOptional<number>;
   declare email: string;
   declare password: string;
   declare admin: CreationOptional<boolean>;
@@ -23,9 +23,9 @@ export const init = sequelize =>
   Voter.init(
     {
       voterId: {
-        type: DataTypes.TEXT,
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
         primaryKey: true,
-        unique: true,
       },
       email: {
         type: DataTypes.TEXT,
