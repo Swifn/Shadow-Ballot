@@ -14,7 +14,7 @@ export class Society extends Model<
   declare name: string;
 }
 
-export const innit = sequelize =>
+export const init = sequelize =>
   Society.init(
     {
       societyId: {
