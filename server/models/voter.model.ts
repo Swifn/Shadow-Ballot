@@ -47,10 +47,6 @@ export const init = sequelize =>
         allowNull: false,
         defaultValue: false,
       },
-      society: {
-        type: DataTypes.INTEGER,
-        defaultValue: null,
-      },
     },
     { modelName: "Voter", freezeTableName: true, sequelize }
   );

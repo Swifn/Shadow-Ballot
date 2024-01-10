@@ -8,7 +8,7 @@ import {
 } from "sequelize";
 
 import { Voter } from "./voter.model.js";
-import { ElectionCandidates } from "./electrion-candidate.model.js";
+import { ElectionCandidates } from "./election-candidates.model.js";
 import { Election } from "./election.model.js";
 
 export class Vote extends Model<
@@ -31,12 +31,15 @@ export const init = sequelize =>
       },
       voterId: {
         type: DataTypes.INTEGER,
+        allowNull: false,
       },
       candidateId: {
         type: DataTypes.INTEGER,
+        allowNull: false,
       },
       electionId: {
         type: DataTypes.INTEGER,
+        allowNull: false,
       },
     },
     { modelName: "Vote", freezeTableName: true, sequelize }

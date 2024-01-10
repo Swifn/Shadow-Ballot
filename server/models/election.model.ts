@@ -7,7 +7,7 @@ import {
   Model,
 } from "sequelize";
 import { Society } from "./society.model.js";
-import { ElectionCandidates } from "./electrion-candidate.model.js";
+import { ElectionCandidates } from "./election-candidates.model.js";
 
 export class Election extends Model<
   InferAttributes<Election>,
@@ -18,7 +18,6 @@ export class Election extends Model<
   declare name: string;
   declare readonly societyId: ForeignKey<Society["societyId"]>;
 
-  declare candidateId: ForeignKey<ElectionCandidates["candidateId"]>;
   declare description: string;
   declare time: CreationOptional<Date>;
 }
@@ -30,6 +29,7 @@ export const init = sequelize =>
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+        unique: true,
       },
       name: {
         type: DataTypes.STRING,
