@@ -2,25 +2,48 @@ import { Request, Response } from "express";
 import { Election } from "../models/election.model.js";
 import { ElectionCandidates } from "../models/election-candidates.model.js";
 import { Vote } from "../models/vote.model.js";
+import {
+  doesElectionExist,
+  doesSocietyExist,
+  isCandidateInElection,
+  isElectionOpen,
+  isNewVote,
+  isSocietyOwner,
+} from "../utils/utils.js";
 
-//TODO: make it so that the time inputed automatically closes the election
-// once the time is met
+//TODO: make it so that the time inputted automatically closes the election
+// once the time is met.
+//TODO: Make the creator of the election the owner so they can open/close elections manually
+
 export const createElection = async (req: Request, res: Response) => {
   try {
-    const { name, description, societyId, time } = req.body;
+    const { name, description, societyId, voterId, time } = req.body;
 
     if (!name || !societyId || !time) {
       return res.status(400).send({ error: "Missing required fields" });
     }
 
-    const election = await Election.create({
-      name,
-      description,
-      societyId,
-      time,
+    if (await doesSocietyExist(societyId)) {
+      if (await isSocietyOwner(societyId, voterId)) {
+        await Election.create({
+          name: name,
+          description: description,
+          societyId: societyId,
+          societyOwnerId: voterId,
+          electionStatus: true,
+          time: time,
+        });
+        return res
+          .status(201)
+          .send({ message: `${name} election has been created` });
+      }
+      return res
+        .status(400)
+        .send({ error: "You are not the owner of this society" });
+    }
+    return res.status(400).send({
+      error: "The society you are creating an election for does not exist",
     });
-
-    return res.status(201).send(election);
   } catch (error) {
     console.error(error);
     return res.status(500).send({ error: "Unable to create election" });
@@ -30,26 +53,24 @@ export const createElection = async (req: Request, res: Response) => {
 export const addCandidate = async (req: Request, res: Response) => {
   const { electionId, voterId, candidateName, description } = req.body;
   try {
-    const existingCandidate = await ElectionCandidates.findOne({
-      where: {
-        electionId: electionId,
-        voterId: voterId,
-      },
-    });
-
-    if (existingCandidate) {
+    if (await doesElectionExist(electionId)) {
+      if (await isCandidateInElection(electionId, voterId)) {
+        await ElectionCandidates.create({
+          electionId,
+          voterId,
+          candidateName,
+          description,
+        });
+        return res.status(201).send({
+          message:
+            "You have successfully added this candidate to this election",
+        });
+      }
       return res
         .status(400)
-        .send({ error: "This candidate is already apart of this election" });
+        .send({ error: "This candidate is already a part of this election" });
     }
-
-    const newCandidate = await ElectionCandidates.create({
-      electionId,
-      voterId,
-      candidateName,
-      description,
-    });
-    return res.status(201).send(newCandidate);
+    return res.status(400).send({ error: "This election does not exist" });
   } catch (error) {
     console.log(error);
     return res
@@ -91,33 +112,28 @@ export const getElectionWithCandidates = async (
 export const castVote = async (req: Request, res: Response) => {
   const { voterId, candidateId, electionId } = req.body;
   try {
-    const existingVote = await Vote.findOne({
-      where: {
-        voteId: voterId,
-        electionId: electionId,
-      },
-    });
-    if (existingVote) {
+    if (await doesElectionExist(electionId)) {
+      if (await isElectionOpen(electionId)) {
+        if (await isCandidateInElection(electionId, candidateId)) {
+          if (await isNewVote(voterId, electionId)) {
+            await Vote.create({ voterId, candidateId, electionId });
+            return res
+              .status(201)
+              .send({ message: "You have successfully casted your vote" });
+          }
+          return res
+            .status(400)
+            .send({ error: "You can not vote more than once per election" });
+        }
+        return res.status(400).send({
+          error: "The candidate you are voting for is not in this election",
+        });
+      }
       return res
         .status(400)
-        .send({ error: "You has already voted in this election" });
+        .send({ error: "This election is not open voting" });
     }
-
-    const validCandidate = await ElectionCandidates.findOne({
-      where: {
-        candidateId: candidateId,
-        electionId: electionId,
-      },
-    });
-
-    if (!validCandidate) {
-      return res
-        .status(400)
-        .send({ error: "This candidate is not a part of this election" });
-    }
-
-    const vote = await Vote.create({ voterId, candidateId, electionId });
-    return res.status(201).send(vote);
+    return res.status(400).send({ error: "This election does not exist" });
   } catch (error) {
     console.log(error);
     return res.status(500).send({ error: "Unable to cast vote" });
@@ -133,9 +149,64 @@ export const getElectionResults = async (req: Request, res: Response) => {
   }
 };
 
-//TODO: finish open and close election funcitons and modify the data model so
-// that it holds a bool value of whether an election is still open or now closed
+export const openElection = async (req: Request, res: Response) => {
+  const { electionId, voterId, societyId, electionStatus } = req.body;
+  try {
+    if (await doesElectionExist(electionId)) {
+      if (await isSocietyOwner(societyId, voterId)) {
+        if (await isElectionOpen(electionId)) {
+          await Election.update(
+            { electionStatus: electionStatus },
+            {
+              where: {
+                societyId: societyId,
+              },
+            }
+          );
+          return res.status(201).send({ message: "Election is now open" });
+        }
+        return res.status(400).send({ error: "This election is already open" });
+      }
+      return res
+        .status(400)
+        .send({ error: "You are not the owner of this society" });
+    }
+    return res.status(400).send({ error: "This election does not exist" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Unable to open vote" });
+  }
+};
 
-export const openElection = async (req: Request, res: Response) => {};
-
-export const closeElection = async (req: Request, res: Response) => {};
+export const closeElection = async (req: Request, res: Response) => {
+  const { electionId, voterId, societyId, electionStatus } = req.body;
+  try {
+    if (await doesElectionExist(electionId)) {
+      if (await isSocietyOwner(societyId, voterId)) {
+        if (!(await isElectionOpen(electionId))) {
+          await Election.update(
+            { electionStatus: electionStatus },
+            {
+              where: {
+                societyId: societyId,
+              },
+            }
+          );
+          return res
+            .status(201)
+            .send({ message: "This election is now closed" });
+        }
+        return res
+          .status(400)
+          .send({ error: "This election is already closed" });
+      }
+      return res
+        .status(400)
+        .send({ error: "You are not the owner of this society" });
+    }
+    return res.status(400).send({ error: "This election does not exist" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Unable to close vote" });
+  }
+};

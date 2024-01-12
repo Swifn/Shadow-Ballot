@@ -7,7 +7,7 @@ import {
   Model,
 } from "sequelize";
 import { Society } from "./society.model.js";
-import { ElectionCandidates } from "./election-candidates.model.js";
+import { Voter } from "./voter.model.js";
 
 export class Election extends Model<
   InferAttributes<Election>,
@@ -16,9 +16,12 @@ export class Election extends Model<
   declare electionId: CreationOptional<number>;
 
   declare name: string;
-  declare readonly societyId: ForeignKey<Society["societyId"]>;
+  declare societyId: ForeignKey<Society["societyId"]>;
+
+  declare societyOwnerId: ForeignKey<Voter["voterId"]>;
 
   declare description: string;
+  declare electionStatus: boolean;
   declare time: CreationOptional<Date>;
 }
 
@@ -42,6 +45,15 @@ export const init = sequelize =>
       description: {
         type: DataTypes.STRING,
         defaultValue: null,
+      },
+      electionStatus: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
+      societyOwnerId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
       time: {
         type: DataTypes.TIME,
