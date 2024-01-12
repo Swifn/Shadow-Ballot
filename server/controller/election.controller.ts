@@ -13,7 +13,6 @@ import {
 
 //TODO: make it so that the time inputted automatically closes the election
 // once the time is met.
-//TODO: Make the creator of the election the owner so they can open/close elections manually
 
 export const createElection = async (req: Request, res: Response) => {
   try {
@@ -159,7 +158,7 @@ export const openElection = async (req: Request, res: Response) => {
             { electionStatus: electionStatus },
             {
               where: {
-                societyId: societyId,
+                electionId: electionId,
               },
             }
           );
@@ -188,7 +187,7 @@ export const closeElection = async (req: Request, res: Response) => {
             { electionStatus: electionStatus },
             {
               where: {
-                societyId: societyId,
+                electionId: electionId,
               },
             }
           );
