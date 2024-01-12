@@ -2,6 +2,7 @@ import express from "express";
 import { Config } from "./configs/config.js";
 import { authRouter } from "./routes/auth.route.js";
 import { electionRouter } from "./routes/election.route.js";
+import { societyRouter } from "./routes/society.route.js";
 
 const app = express();
 
@@ -13,6 +14,8 @@ app.use((req, res, next) => {
 
 app.use("/auth", authRouter);
 app.use("/election", electionRouter);
+app.use("/society", societyRouter);
+
 app.listen(0, function () {
   const serverAddress = this.address();
 
