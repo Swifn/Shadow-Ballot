@@ -22,7 +22,6 @@ export class Election extends Model<
 
   declare description: string;
   declare electionStatus: boolean;
-  declare time: CreationOptional<Date>;
 }
 
 export const init = sequelize =>
@@ -53,10 +52,6 @@ export const init = sequelize =>
       },
       societyOwnerId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      time: {
-        type: DataTypes.TIME,
         allowNull: false,
       },
     },

@@ -11,8 +11,7 @@ import {
   isSocietyOwner,
 } from "../utils/utils.js";
 
-//TODO: make it so that the time inputted automatically closes the election
-// once the time is met.
+//TODO: have a time /  date option for when the vote should open and close.
 
 export const createElection = async (req: Request, res: Response) => {
   try {
@@ -30,7 +29,6 @@ export const createElection = async (req: Request, res: Response) => {
           societyId: societyId,
           societyOwnerId: voterId,
           electionStatus: true,
-          time: time,
         });
         return res
           .status(201)
@@ -148,6 +146,7 @@ export const getElectionResults = async (req: Request, res: Response) => {
   }
 };
 
+//TODO: Add a feature where the election can only be opened once to stop changes?
 export const openElection = async (req: Request, res: Response) => {
   const { electionId, voterId, societyId, electionStatus } = req.body;
   try {
