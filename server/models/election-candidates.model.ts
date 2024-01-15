@@ -6,7 +6,6 @@ import {
   DataTypes,
   CreationOptional,
 } from "sequelize";
-import { Voter } from "./voter.model.js";
 import { Election } from "./election.model.js";
 
 export class ElectionCandidates extends Model<
@@ -16,6 +15,8 @@ export class ElectionCandidates extends Model<
   declare candidateId: CreationOptional<number>;
   declare electionId: ForeignKey<Election["electionId"]>;
   declare candidateName: string;
+
+  declare candidateAlias: string;
 
   declare description: string;
 }
@@ -33,6 +34,10 @@ export const init = sequelize =>
         allowNull: false,
       },
       candidateName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      candidateAlias: {
         type: DataTypes.STRING,
         allowNull: false,
       },

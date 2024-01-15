@@ -9,6 +9,7 @@ import {
   isElectionOpen,
   isNewVote,
   isSocietyOwner,
+  isNewCandidate,
 } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import { Sequelize } from "sequelize";
@@ -17,9 +18,9 @@ import { Sequelize } from "sequelize";
 
 export const createElection = async (req: Request, res: Response) => {
   try {
-    const { name, description, societyId, voterId, time } = req.body;
+    const { name, description, societyId, voterId } = req.body;
 
-    if (!name || !societyId || !time) {
+    if (!name || !societyId || voterId) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ error: "Missing required fields" });
@@ -55,15 +56,15 @@ export const createElection = async (req: Request, res: Response) => {
 
 //TODO: Add a check so that candidates cannot be added once an election
 export const addCandidate = async (req: Request, res: Response) => {
-  const { electionId, voterId, candidateName, description } = req.body;
+  const { electionId, candidateAlias, candidateName, description } = req.body;
   try {
     if (await doesElectionExist(electionId)) {
-      if (await isCandidateInElection(electionId, voterId)) {
+      if (await isNewCandidate(electionId, candidateName, candidateAlias)) {
         await ElectionCandidates.create({
-          electionId,
-          voterId,
-          candidateName,
-          description,
+          electionId: electionId,
+          candidateName: candidateName,
+          candidateAlias: candidateAlias,
+          description: description,
         });
         return res.status(HTTP.STATUS_CREATED).send({
           message:
@@ -100,6 +101,7 @@ export const getElectionWithCandidates = async (
             "candidateId",
             "electionId",
             "candidateName",
+            "candidateAlias",
             "description",
           ],
         },
