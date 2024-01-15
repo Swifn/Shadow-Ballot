@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Society } from "../models/society.model.js";
 import { VoterSociety } from "../models/voter-society.model.js";
 import { isInSociety, doesSocietyExist, isNameUnique } from "../utils/utils.js";
+import * as HTTP from "../utils/magicNumbers.js";
 
 //TODO: Create a check to see if a society has already been created
 export const createSociety = async (req: Request, res: Response) => {
@@ -9,7 +10,9 @@ export const createSociety = async (req: Request, res: Response) => {
     const { societyId, voterId, name, description } = req.body;
 
     if (!name || !description) {
-      return res.status(400).send({ error: "Missing required fields" });
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ error: "Missing required fields" });
     }
 
     if (await isNameUnique(name)) {
@@ -19,14 +22,18 @@ export const createSociety = async (req: Request, res: Response) => {
         name: name,
         description: description,
       });
-      return res.status(201).send({ message: `${name} has been created` });
+      return res
+        .status(HTTP.STATUS_CREATED)
+        .send({ message: `${name} has been created` });
     }
     return res
-      .status(400)
+      .status(HTTP.STATUS_BAD_REQUEST)
       .send({ error: "A society with this name has already been created" });
   } catch (error) {
     console.log(error);
-    return res.status(500).send({ error: "Unable to create society" });
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ error: "Unable to create society" });
   }
 };
 
@@ -42,13 +49,19 @@ export const deleteSociety = async (req: Request, res: Response) => {
           },
         })) === 1;
       if (hasSocietyBeenDeleted) {
-        return res.status(201).send({ message: "Society has been deleted" });
+        return res
+          .status(HTTP.STATUS_OK)
+          .send({ message: "Society has been deleted" });
       }
     }
-    return res.status(404).send({ error: "This society does not exist" });
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ error: "This society does not exist" });
   } catch (error) {
     console.log(error);
-    return res.status(500).send({ error: "Unable to delete society" });
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ error: "Unable to delete society" });
   }
 };
 
@@ -58,7 +71,7 @@ export const joinSociety = async (req: Request, res: Response) => {
     if (await doesSocietyExist(societyId)) {
       if (await isInSociety(societyId, voterId)) {
         return res
-          .status(400)
+          .status(HTTP.STATUS_BAD_REQUEST)
           .send({ error: "You are already apart of this society" });
       }
       await VoterSociety.create({ societyId, voterId });
@@ -66,13 +79,17 @@ export const joinSociety = async (req: Request, res: Response) => {
         where: { societyId: societyId },
       });
       return res
-        .status(201)
+        .status(HTTP.STATUS_OK)
         .send({ message: `You have joined ${societyName}` });
     }
-    return res.status(400).send({ error: "This society does not exist" });
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ error: "This society does not exist" });
   } catch (error) {
     console.log(error);
-    return res.status(500).send({ error: "Unable to join society" });
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ error: "Unable to join society" });
   }
 };
 
@@ -90,18 +107,22 @@ export const leaveSociety = async (req: Request, res: Response) => {
           })) === 1;
         if (leave) {
           return res
-            .status(200)
+            .status(HTTP.STATUS_OK)
             .send({ message: "You have left this society" });
         }
       }
       return res
-        .status(400)
+        .status(HTTP.STATUS_BAD_REQUEST)
         .send({ error: "You are not a part of this society" });
     }
-    return res.status(400).send({ error: "This society does not exist" });
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ error: "This society does not exist" });
   } catch (error) {
     console.log(error);
-    return res.status(500).send({ error: "Unable to leave society" });
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ error: "Unable to leave society" });
   }
 };
 
