@@ -78,14 +78,34 @@ export const isElectionOpen = async (electionId: number): Promise<boolean> => {
   return open === null;
 };
 
+export const isNewCandidate = async (
+  electionId: number,
+  candidateName: string,
+  candidateAlias: string
+): Promise<boolean> => {
+  const newCandidate = await ElectionCandidates.findOne({
+    where: {
+      electionId: electionId,
+      candidateName: {
+        [Op.like]: candidateName,
+      },
+      candidateAlias: {
+        [Op.like]: candidateAlias,
+      },
+    },
+  });
+
+  return newCandidate === null;
+};
+
 export const isCandidateInElection = async (
   electionId: number,
-  voterId: number
+  candidateId: number
 ): Promise<boolean> => {
   const validCandidate = await ElectionCandidates.findOne({
     where: {
       electionId: electionId,
-      voterId: voterId,
+      candidateId: candidateId,
     },
   });
 
@@ -104,4 +124,13 @@ export const isNewVote = async (
   });
 
   return newVote === null;
+};
+
+export const kAnonymity = async electionId => {
+  const anonymous = await Vote.findAll({
+    where: {
+      electionId: electionId,
+    },
+    include: {},
+  });
 };
