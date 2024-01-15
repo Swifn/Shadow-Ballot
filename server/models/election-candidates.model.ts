@@ -15,7 +15,6 @@ export class ElectionCandidates extends Model<
 > {
   declare candidateId: CreationOptional<number>;
   declare electionId: ForeignKey<Election["electionId"]>;
-  declare voterId: ForeignKey<Voter["voterId"]>;
   declare candidateName: string;
 
   declare description: string;
@@ -30,10 +29,6 @@ export const init = sequelize =>
         autoIncrement: true,
       },
       electionId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      voterId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
