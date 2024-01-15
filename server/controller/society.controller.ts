@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { Society } from "../models/society.model.js";
-import { VoterSociety } from "../models/voter-society.model.js";
+import { Society } from "../models/index.js";
+import { VoterSociety } from "../models/index.js";
 import { isInSociety, doesSocietyExist, isNameUnique } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
 

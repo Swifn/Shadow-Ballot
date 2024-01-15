@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { Election } from "../models/election.model.js";
-import { ElectionCandidates } from "../models/election-candidates.model.js";
-import { Vote } from "../models/vote.model.js";
+import { Election } from "../models/index.js";
+import { ElectionCandidates } from "../models/index.js";
+import { Vote } from "../models/index.js";
 import {
   doesElectionExist,
   doesSocietyExist,
