@@ -11,6 +11,7 @@ import { Voter } from "./routes/voter";
 import { NotFound } from "./routes/not-found";
 import { Election } from "./routes/election";
 import { PrivacyPolicy } from "./routes/privacy-policy";
+import { Society } from "./routes/society";
 
 function App() {
   return (
@@ -30,7 +31,8 @@ function App() {
                 <Route path={Index.AUTH()} element={<SignIn />} />
               </Route>
               <Route path={Index.VOTER()} element={<Voter />} />
-              <Route path={Index.VOTE()} element={<Election />} />
+              <Route path={Index.ELECTION()} element={<Election />} />
+              <Route path={Index.SOCIETY()} element={<Society />} />
               <Route
                 path={Index.PRIVACY_POLICY()}
                 element={<PrivacyPolicy />}
