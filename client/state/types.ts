@@ -1,7 +1,9 @@
 export interface Voter {
-  userId: string;
+  voterId: string;
   email: string;
-  Society?: Society;
+  society?: Society;
+
+  admin: boolean;
 }
 
 export interface Vote {
@@ -19,10 +21,6 @@ export interface Vote {
   option8?: string;
   option9?: string;
   option10?: string;
-}
-
-export interface User extends Voter {
-  admin: boolean;
 }
 
 export interface Society {
