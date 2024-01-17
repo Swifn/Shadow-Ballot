@@ -35,7 +35,6 @@ export const SignUp = () => {
     const body = Object.fromEntries(
       new FormData(form.current ?? undefined).entries()
     );
-    console.log(body);
     const response = await post("auth/sign-up", body);
     if (response.ok) {
       // Once signed up, ask user to sign in to start session
@@ -47,7 +46,6 @@ export const SignUp = () => {
     setFormEnabled(true);
   };
 
-  // @ts-ignore
   return (
     <>
       <Helmet>

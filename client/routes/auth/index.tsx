@@ -1,21 +1,38 @@
 import styles from "./style.module.scss";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { Routes } from "../index";
 import { AnonymousRoute } from "../../components/conditional-route";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import React from "react";
+import { Button, Stack } from "@carbon/react";
+import bg from "../../assets/bg.jpg";
 
 export const Auth = () => {
-  const { connection } = useConnection();
-  const { publicKey } = useWallet();
+  const navigate = useNavigate();
 
-  console.log(publicKey);
   return (
     <AnonymousRoute>
       <div className={styles.container}>
         <main>
           <h1>SVS Chain</h1>
           <div>
-            <Outlet />
+            <Stack gap={8}>
+              <Outlet />
+            </Stack>
           </div>
+          <div className="privacy">
+            <Button
+              kind="ghost"
+              size="md"
+              onClick={navigate.bind(null, Routes.PRIVACY_POLICY())}
+            >
+              Privacy policy
+            </Button>
+          </div>
+          <span
+            role="img"
+            className={styles.background}
+            style={{ backgroundImage: `url(${bg})` }}
+          />
         </main>
       </div>
     </AnonymousRoute>
