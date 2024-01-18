@@ -23,7 +23,7 @@ export const createElection = async (req: Request, res: Response) => {
     if (!name || !societyId || voterId) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ error: "Missing required fields" });
+        .send({ message: "Missing required fields" });
     }
 
     if (await doesSocietyExist(societyId)) {
@@ -41,16 +41,16 @@ export const createElection = async (req: Request, res: Response) => {
       }
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ error: "You are not the owner of this society" });
+        .send({ message: "You are not the owner of this society" });
     }
     return res.status(HTTP.STATUS_BAD_REQUEST).send({
-      error: "The society you are creating an election for does not exist",
+      message: "The society you are creating an election for does not exist",
     });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to create election" });
+      .send({ message: "Unable to create election" });
   }
 };
 
@@ -73,16 +73,16 @@ export const addCandidate = async (req: Request, res: Response) => {
       }
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ error: "This candidate is already a part of this election" });
+        .send({ message: "This candidate is already a part of this election" });
     }
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ error: "This election does not exist" });
+      .send({ message: "This election does not exist" });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to add candidate to election" });
+      .send({ message: "Unable to add candidate to election" });
   }
 };
 
@@ -110,14 +110,14 @@ export const getElectionWithCandidates = async (
     if (!election) {
       return res
         .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-        .send({ error: "Election not found" });
+        .send({ message: "Election not found" });
     }
     return res.status(HTTP.STATUS_OK).send(election);
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to fetch election" });
+      .send({ message: "Unable to fetch election" });
   }
 };
 
@@ -135,24 +135,24 @@ export const castVote = async (req: Request, res: Response) => {
           }
           return res
             .status(HTTP.STATUS_BAD_REQUEST)
-            .send({ error: "You can not vote more than once per election" });
+            .send({ message: "You can not vote more than once per election" });
         }
         return res.status(HTTP.STATUS_BAD_REQUEST).send({
-          error: "The candidate you are voting for is not in this election",
+          message: "The candidate you are voting for is not in this election",
         });
       }
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ error: "This election is not open voting" });
+        .send({ message: "This election is not open voting" });
     }
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ error: "This election does not exist" });
+      .send({ message: "This election does not exist" });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to cast vote" });
+      .send({ message: "Unable to cast vote" });
   }
 };
 
@@ -183,7 +183,7 @@ export const getElectionResults = async (req: Request, res: Response) => {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to fetch election results" });
+      .send({ message: "Unable to fetch election results" });
   }
 };
 
@@ -208,20 +208,20 @@ export const openElection = async (req: Request, res: Response) => {
         }
         return res
           .status(HTTP.STATUS_BAD_REQUEST)
-          .send({ error: "This election is already open" });
+          .send({ message: "This election is already open" });
       }
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ error: "You are not the owner of this society" });
+        .send({ message: "You are not the owner of this society" });
     }
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ error: "This election does not exist" });
+      .send({ message: "This election does not exist" });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to open vote" });
+      .send({ message: "Unable to open vote" });
   }
 };
 
@@ -245,19 +245,19 @@ export const closeElection = async (req: Request, res: Response) => {
         }
         return res
           .status(HTTP.STATUS_BAD_REQUEST)
-          .send({ error: "This election is already closed" });
+          .send({ message: "This election is already closed" });
       }
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ error: "You are not the owner of this society" });
+        .send({ message: "You are not the owner of this society" });
     }
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ error: "This election does not exist" });
+      .send({ message: "This election does not exist" });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to close vote" });
+      .send({ message: "Unable to close vote" });
   }
 };

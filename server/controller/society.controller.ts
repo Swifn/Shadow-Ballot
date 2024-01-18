@@ -12,7 +12,7 @@ export const createSociety = async (req: Request, res: Response) => {
     if (!name || !description) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ error: "Missing required fields" });
+        .send({ message: "Missing required fields" });
     }
 
     if (await isNameUnique(name)) {
@@ -28,12 +28,12 @@ export const createSociety = async (req: Request, res: Response) => {
     }
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ error: "A society with this name has already been created" });
+      .send({ message: "A society with this name has already been created" });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to create society" });
+      .send({ message: "Unable to create society" });
   }
 };
 
@@ -56,12 +56,12 @@ export const deleteSociety = async (req: Request, res: Response) => {
     }
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ error: "This society does not exist" });
+      .send({ message: "This society does not exist" });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to delete society" });
+      .send({ message: "Unable to delete society" });
   }
 };
 
@@ -72,7 +72,7 @@ export const joinSociety = async (req: Request, res: Response) => {
       if (await isInSociety(societyId, voterId)) {
         return res
           .status(HTTP.STATUS_BAD_REQUEST)
-          .send({ error: "You are already apart of this society" });
+          .send({ message: "You are already apart of this society" });
       }
       await VoterSociety.create({ societyId, voterId });
       const societyName = await Society.findOne({
@@ -84,12 +84,12 @@ export const joinSociety = async (req: Request, res: Response) => {
     }
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ error: "This society does not exist" });
+      .send({ message: "This society does not exist" });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to join society" });
+      .send({ message: "Unable to join society" });
   }
 };
 
@@ -113,16 +113,16 @@ export const leaveSociety = async (req: Request, res: Response) => {
       }
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ error: "You are not a part of this society" });
+        .send({ message: "You are not a part of this society" });
     }
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ error: "This society does not exist" });
+      .send({ message: "This society does not exist" });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "Unable to leave society" });
+      .send({ message: "Unable to leave society" });
   }
 };
 
