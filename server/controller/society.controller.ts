@@ -67,12 +67,19 @@ export const deleteSociety = async (req: Request, res: Response) => {
 
 export const joinSociety = async (req: Request, res: Response) => {
   const { voterId, societyId } = req.body;
+
   try {
+    if (await (societyId === "null")) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "Please select a society" });
+    }
+
     if (await doesSocietyExist(societyId)) {
       if (await isInSociety(societyId, voterId)) {
         return res
           .status(HTTP.STATUS_BAD_REQUEST)
-          .send({ message: "You are already apart of this society" });
+          .send({ message: "You are already a part of this society" });
       }
       await VoterSociety.create({ societyId, voterId });
       const societyName = await Society.findOne({
@@ -126,6 +133,20 @@ export const leaveSociety = async (req: Request, res: Response) => {
   }
 };
 
-export const getSocieties = async (req: Request, res: Response) => {};
+export const getAllSocieties = async (req: Request, res: Response) => {
+  try {
+    const societies = await Society.findAll({
+      attributes: {
+        exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+      },
+    });
+    return res.status(HTTP.STATUS_OK).send({ societies });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get societies" });
+  }
+};
 
 export const getSocietyById = async (req: Request, res: Response) => {};
