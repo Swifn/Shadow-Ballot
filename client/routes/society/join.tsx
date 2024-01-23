@@ -1,11 +1,13 @@
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Button, ComboBox, InlineNotification, Stack } from "@carbon/react";
-import { SendFilled } from "@carbon/icons-react";
+import { PortInput, SendFilled } from "@carbon/icons-react";
 import { get, post } from "../../utils/fetch";
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import { Routes } from "../index";
 import { useNavigate } from "react-router-dom";
+import { Cards } from "../../components/cards/index";
+import styles from "./style.module.scss";
 
 interface Society {
   societyId: number;
@@ -16,82 +18,70 @@ interface Society {
 export const Join = () => {
   const navigate = useNavigate();
   const [getAllResult, setGetAllResult] = useState<Society[] | null>([]);
-  const [society, setSociety] = useState<string[]>([]);
+  const [societies, setSocieties] = useState<string[]>([]);
   const [selectedSociety, setSelectedSociety] = useState<number | null>(null);
-  const [societyDescription, setSocietyDescription] = useState<string | null>(
-    null
-  );
-  const form = useRef<HTMLFormElement>(null);
-  const joinSociety = useRef<HTMLInputElement>(null);
-  const [formEnabled, setFormEnabled] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    setFormEnabled(false);
-
-    const formData = new FormData(form.current ?? undefined);
-
-    const voterId = localStorage.getItem("USER_ID");
-    if (voterId) {
-      formData.append("voterId", voterId);
-    }
-
-    formData.append("societyId", selectedSociety);
-
-    const body = Object.fromEntries(formData.entries());
-
-    console.log(body);
-
-    const response = await post("society/join", body);
-
-    const responseMessage = (await response.json()).message;
-    console.log(response);
-    if (!response.ok) {
-      console.log(responseMessage);
-      setError(responseMessage);
-      setSuccess(null);
-      setFormEnabled(true);
-    } else {
-      setSuccess(responseMessage);
-      setError(null);
-      return;
-    }
-  };
-
-  const handleSocietySelection = selectedItem => {
-    const selectedSociety = getAllResult.find(
-      society => society.name === selectedItem.selectedItem
-    );
-    console.log(selectedSociety.societyId);
-
-    if (selectedSociety) {
-      setSocietyDescription(selectedSociety.description);
-      setSelectedSociety(selectedSociety.societyId);
-    } else {
-      console.error("Selected society is not found");
-    }
+  const joinSocietyHandler = async (societyId: number) => {
+    setSelectedSociety(societyId);
+    console.log(selectedSociety);
   };
 
   useEffect(() => {
-    const fetchAllSocietiesAsync = async () => {
+    const joinSociety = async () => {
+      if (selectedSociety != null) {
+        try {
+          const formData = new FormData();
+
+          const voterId = localStorage.getItem("USER_ID");
+          if (voterId) {
+            formData.append("voterId", voterId);
+          }
+          formData.append("societyId", selectedSociety);
+
+          const body = Object.fromEntries(formData.entries());
+          const response = await post(`society/join`, body);
+
+          const responseMessage = (await response.json()).message;
+
+          if (response.ok) {
+            setSuccess(responseMessage);
+            setError(null);
+            navigate(Routes.SOCIETY());
+          } else {
+            setSuccess(null);
+            setError(responseMessage);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+    joinSociety();
+  }, [selectedSociety]);
+
+  useEffect(() => {
+    const fetchAllSocieties = async () => {
       try {
         const response = await get("society/getall").then(res => res.json());
         setGetAllResult(response.societies);
-        // .then(json => json.societies);
-      } catch (e) {
-        console.log(`Error when retrieving all society data: ${e}`);
+        const sortedSocieties = response.societies.sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        setGetAllResult(sortedSocieties);
+      } catch (error) {
+        console.log(`Error when retrieving all society data: ${error}`);
       }
     };
 
-    fetchAllSocietiesAsync();
+    fetchAllSocieties();
   }, []);
 
   useEffect(() => {
     if (getAllResult) {
       const societyNames = getAllResult.map(society => society.name);
-      setSociety(societyNames);
+      setSocieties(societyNames);
     }
   }, [getAllResult]);
 
@@ -101,36 +91,27 @@ export const Join = () => {
         <Helmet>
           <title>Join a society</title>
         </Helmet>
-        <Stack gap={7}>
-          <form
-            aria-label="Join Society Form"
-            className={"meow"}
-            ref={form}
-            onSubmit={submit}
-          >
-            <ComboBox
-              allowCustomValue={false}
-              className="combo_box"
-              id="society-combobox"
-              items={society}
-              onChange={handleSocietySelection}
-              placeholder="Select a society"
-              titleText="Societies"
-            />
-            <p>{societyDescription}</p>
-            <Button type="submit" renderIcon={SendFilled}>
-              Join Society
-            </Button>
-            {error && <InlineNotification title={error} hideCloseButton />}
-            {success && (
-              <InlineNotification
-                title={success}
-                hideCloseButton
-                kind="success"
+        <div className={styles.cardContainer}>
+          {getAllResult &&
+            getAllResult.map(society => (
+              <Cards
+                key={society.societyId}
+                name={society.name}
+                description={society.description}
+                button={"Join"}
+                icon={PortInput}
+                eventHandler={() => joinSocietyHandler(society.societyId)}
               />
-            )}
-          </form>
-        </Stack>
+            ))}
+          {error && <InlineNotification title={error} hideCloseButton />}
+          {success && (
+            <InlineNotification
+              title={success}
+              hideCloseButton
+              kind="success"
+            />
+          )}
+        </div>
       </div>
     </AuthenticatedRoute>
   );
