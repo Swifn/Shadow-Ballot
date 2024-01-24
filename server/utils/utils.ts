@@ -26,7 +26,7 @@ export const isInSociety = async (
     },
   });
 
-  return inSociety === null;
+  return inSociety !== null;
 };
 
 export const isNameUnique = async (name: string): Promise<boolean> => {
