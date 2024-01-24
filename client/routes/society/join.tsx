@@ -1,7 +1,7 @@
-import React, { FormEvent, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import { Button, ComboBox, InlineNotification, Stack } from "@carbon/react";
-import { PortInput, SendFilled } from "@carbon/icons-react";
+import { InlineNotification } from "@carbon/react";
+import { Delete, PortInput } from "@carbon/icons-react";
 import { get, post } from "../../utils/fetch";
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import { Routes } from "../index";
@@ -64,7 +64,7 @@ export const Join = () => {
   useEffect(() => {
     const fetchAllSocieties = async () => {
       try {
-        const response = await get("society/getall").then(res => res.json());
+        const response = await get("society/get-all").then(res => res.json());
         setGetAllResult(response.societies);
         const sortedSocieties = response.societies.sort((a, b) =>
           a.name.localeCompare(b.name)
@@ -95,12 +95,16 @@ export const Join = () => {
           {getAllResult &&
             getAllResult.map(society => (
               <Cards
-                key={society.societyId}
                 name={society.name}
+                key={society.societyId}
                 description={society.description}
-                button={"Join"}
-                icon={PortInput}
-                eventHandler={() => joinSocietyHandler(society.societyId)}
+                buttons={[
+                  {
+                    label: "Join",
+                    eventHandler: () => joinSocietyHandler(society.societyId),
+                    icon: PortInput,
+                  },
+                ]}
               />
             ))}
           {error && <InlineNotification title={error} hideCloseButton />}
