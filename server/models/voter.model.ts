@@ -17,7 +17,7 @@ export class Voter extends Model<
   declare email: string;
   declare password: string;
   declare admin: CreationOptional<boolean>;
-  declare society: ForeignKey<Society["societyId"]>;
+  //declare society: ForeignKey<Society["societyId"]>;
 }
 export const init = sequelize =>
   Voter.init(
