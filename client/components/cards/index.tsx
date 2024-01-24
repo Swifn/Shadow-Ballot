@@ -11,7 +11,7 @@ interface buttonConfig {
 }
 
 export const Cards = ({
-  profilePicture = "./client/assets/bg.jpg",
+  profilePicture = "/client/assets/bg.jpg",
   name,
   description,
   buttons,
