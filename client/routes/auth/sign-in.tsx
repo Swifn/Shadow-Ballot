@@ -7,7 +7,6 @@ import { Routes } from "../index";
 import styles from "./style.module.scss";
 import { userState } from "../../state/user-state";
 import { Button, InlineNotification, TextInput, Stack } from "@carbon/react";
-
 import { get, post } from "../../utils/fetch";
 import { PortInput } from "@carbon/icons-react";
 
@@ -41,15 +40,13 @@ export const SignIn = () => {
     if (!userResponse.ok) {
       setError("Could not sign you in. Please try again later");
     }
-    console.log(userResponse);
     setUser(await userResponse.json());
-    navigate(Routes.LANDING());
   };
 
   return (
     <>
       <Helmet>
-        <title>Sign In {Config.APP.NAME}</title>
+        <title>Sign In to {Config.APP.NAME}</title>
       </Helmet>
       <h2>Sign In</h2>
       <p className="logInHint">
@@ -68,10 +65,8 @@ export const SignIn = () => {
             type="text"
             labelText="Email"
             name="email"
-            pattern={Config.ORG.EMAIL_REGEX.source}
             placeholder={Config.ORG.EMAIL_PLACEHOLDER}
             invalid={error !== null}
-            required
           />
           <TextInput
             id="sign-in__password1"
@@ -79,7 +74,6 @@ export const SignIn = () => {
             name="password"
             type="password"
             invalid={error !== null}
-            required
           />
           <div className="submit">
             <Button

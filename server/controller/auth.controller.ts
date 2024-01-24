@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthConfig } from "../configs/auth.config.js";
+import { Config } from "../configs/config.js";
 import { Voter } from "../models/index.js";
 import * as HTTP from "../utils/magicNumbers.js";
 
@@ -8,10 +9,33 @@ import * as HTTP from "../utils/magicNumbers.js";
 // remove the REGEX?
 export const signUp = async (req, res) => {
   const { email, password1, password2 } = req.body;
+  if (!email && !password1 && !password2) {
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please enter an email and password" });
+  } else if (!email) {
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please enter an email" });
+  }
+  if (!Config.ORG_EMAIL_REGEX.test(email)) {
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please enter a valid Bham.ac.uk email" });
+  }
+  if (!password1 && !password2)
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please enter a password" });
+  if (email && password1 && !password2) {
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please confirm your password" });
+  }
   if (password1 != password2) {
     return res
       .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "Password mismatch" });
+      .send({ message: "Passwords don't match" });
   }
   const hash = await bcrypt.hash(password1, AuthConfig.SALT);
 
@@ -28,12 +52,33 @@ export const signUp = async (req, res) => {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ error: "unable to create account" });
+      .send({ message: "unable to create account" });
   }
 };
 
 export const signIn = async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email && !password) {
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please enter an email and password" });
+  }
+  if (!email) {
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please enter an email" });
+  }
+  if (!Config.ORG_EMAIL_REGEX.test(email)) {
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please enter a valid Bham.ac.uk email" });
+  }
+  if (!password)
+    return res
+      .status(HTTP.STATUS_BAD_REQUEST)
+      .send({ message: "Please enter an password" });
+
   const voter = await Voter.findOne({
     where: {
       email: email,
