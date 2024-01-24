@@ -7,6 +7,7 @@ import { init as initElectionCandidates } from "./election-candidates.model.js";
 import { init as initSociety } from "./society.model.js";
 import { init as initVote } from "./vote.model.js";
 import { init as initVoterSociety } from "./voter-society.model.js";
+import { init as initFileStorage } from "./file-storage.model.js";
 
 let db: Sequelize;
 
@@ -38,21 +39,24 @@ export const Election = initElection(sequelize);
 export const ElectionCandidates = initElectionCandidates(sequelize);
 export const Society = initSociety(sequelize);
 export const VoterSociety = initVoterSociety(sequelize);
+export const FileStorage = initFileStorage(sequelize);
 
 export const Vote = initVote(sequelize);
+//tested
+Voter.hasMany(VoterSociety, { foreignKey: "voterId" });
+VoterSociety.belongsTo(Voter, { foreignKey: "voterId" });
+Voter.hasMany(Vote, { foreignKey: "voterId" });
+Vote.belongsTo(Voter, { foreignKey: "voterId" });
+Society.hasMany(VoterSociety, { foreignKey: "societyId" });
+VoterSociety.belongsTo(Society, { foreignKey: "societyId" });
 
+//untested
 Election.hasMany(ElectionCandidates, { foreignKey: "electionId" });
 ElectionCandidates.belongsTo(Election, { foreignKey: "electionId" });
 Voter.hasMany(ElectionCandidates, { foreignKey: "voterId" });
 ElectionCandidates.belongsTo(Voter, { foreignKey: "voterId" });
-Society.hasMany(VoterSociety, { foreignKey: "voterSocietyId" });
-VoterSociety.belongsTo(Society, { foreignKey: "voterSocietyId" });
-VoterSociety.hasMany(Voter, { foreignKey: "voterId" });
-Voter.belongsTo(VoterSociety, { foreignKey: "voterId" });
 Society.hasMany(Election, { foreignKey: "societyId" });
 Election.belongsTo(Society, { foreignKey: "societyId" });
-Vote.hasMany(Voter, { foreignKey: "voterId" });
-Voter.belongsTo(Vote, { foreignKey: "voterId" });
 ElectionCandidates.hasMany(Vote, { foreignKey: "candidateId" });
 Vote.belongsTo(ElectionCandidates, { foreignKey: "candidateId" });
 Election.hasMany(Vote, { foreignKey: "electionId" });
@@ -61,3 +65,11 @@ Voter.hasMany(Election, { foreignKey: "societyOwnerId" });
 Election.belongsTo(Voter, { foreignKey: "societyOwnerId" });
 Voter.hasMany(Society, { foreignKey: "societyOwnerId" });
 Society.belongsTo(Voter, { foreignKey: "societyOwnerId" });
+
+FileStorage.hasOne(Society, {
+  foreignKey: "societyPicture",
+  onDelete: "SET NULL",
+  onUpdate: "CASCADE",
+});
+
+Society.belongsTo(FileStorage, { foreignKey: "societyPicture" });
