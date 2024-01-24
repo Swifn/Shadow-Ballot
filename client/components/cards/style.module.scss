@@ -10,6 +10,7 @@
   overflow: hidden;
   box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   margin: 20px;
+  background-color: white;
 }
 .card img{
   width: 100%;
@@ -30,4 +31,15 @@
 
 .cardContent .button {
   margin-top: 16px;
+  margin-right: 16px;
+  margin-left: 16px;
+  min-width: 200px;
+  border-radius: 8px;
 }
+
+
+//.buttonContainer{
+//  display: flex;
+//  flex-wrap: wrap;
+//  flex-direction: column;
+//}
