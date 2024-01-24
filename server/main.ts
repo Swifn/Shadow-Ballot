@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import fileUpload from "express-fileupload";
 import { Config } from "./configs/config.js";
 import { authRouter } from "./routes/auth.route.js";
 import { electionRouter } from "./routes/election.route.js";
@@ -9,6 +10,7 @@ import cors from "cors";
 import { sequelize } from "./models/index.js";
 
 const app = express();
+app.use(fileUpload());
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
