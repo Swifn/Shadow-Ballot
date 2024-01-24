@@ -1,4 +1,6 @@
 import {
+  BelongsToCreateAssociationMixin,
+  BelongsToGetAssociationMixin,
   CreationOptional,
   DataTypes,
   ForeignKey,
@@ -7,6 +9,7 @@ import {
   Model,
 } from "sequelize";
 import { Voter } from "./voter.model.js";
+import { FileStorage } from "./file-storage.model.js";
 
 export class Society extends Model<
   InferCreationAttributes<Society>,
@@ -17,6 +20,10 @@ export class Society extends Model<
   declare societyOwnerId: ForeignKey<Voter["voterId"]>;
   declare name: string;
   declare description: string;
+  declare societyPicture: ForeignKey<FileStorage["fileId"]>;
+
+  declare getSocietyPicture: BelongsToGetAssociationMixin<FileStorage>;
+  declare createSocietyPicture: BelongsToCreateAssociationMixin<FileStorage>;
 }
 
 export const init = sequelize =>
@@ -39,6 +46,10 @@ export const init = sequelize =>
       description: {
         type: DataTypes.STRING,
         allowNull: false,
+      },
+      societyPicture: {
+        type: DataTypes.INTEGER,
+        defaultValue: null,
       },
     },
     { modelName: "Society", freezeTableName: true, sequelize }
