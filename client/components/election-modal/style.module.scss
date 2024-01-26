@@ -1,0 +1,32 @@
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modalContent {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  z-index: 10000;
+}
+body.active-modal{
+  overflow-y: hidden;
+}
+
+.button{
+  margin: 20px;
+  border-radius: 8px;
+}
+
+.input{
+  margin: 20px;
+  border-radius: 8px;
+}
