@@ -22,7 +22,7 @@ export const Cards = ({
       <div className={styles.cardContent}>
         <h3>{name}</h3>
         <p>{description}</p>
-        <div className="buttonContainer">
+        <div className={styles.buttonContainer}>
           {buttons.map((buttonConfig, index) => (
             <Button
               key={index}

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Election } from "../models/index.js";
+import { Election, Society } from "../models/index.js";
 import { ElectionCandidates } from "../models/index.js";
 import { Vote } from "../models/index.js";
 import {
@@ -10,9 +10,11 @@ import {
   isNewVote,
   isSocietyOwner,
   isNewCandidate,
+  isElectionClose,
 } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import { Sequelize } from "sequelize";
+import { v4 as uuid } from "uuid";
 
 //TODO: have a time /  date option for when the vote should open and close.
 
@@ -20,32 +22,34 @@ export const createElection = async (req: Request, res: Response) => {
   try {
     const { name, description, societyId, voterId } = req.body;
 
-    if (!name || !societyId || voterId) {
+    if (!name || !societyId || !voterId) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "Missing required fields" });
     }
 
     if (await doesSocietyExist(societyId)) {
-      if (await isSocietyOwner(societyId, voterId)) {
-        await Election.create({
-          name: name,
-          description: description,
-          societyId: societyId,
-          societyOwnerId: voterId,
-          electionStatus: true,
-        });
-        return res
-          .status(HTTP.STATUS_CREATED)
-          .send({ message: `${name} election has been created` });
-      }
+      return res.status(HTTP.STATUS_BAD_REQUEST).send({
+        message: "The society you are creating an election for does not exist",
+      });
+    }
+
+    if (await isSocietyOwner(societyId, voterId)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "You are not the owner of this society" });
     }
-    return res.status(HTTP.STATUS_BAD_REQUEST).send({
-      message: "The society you are creating an election for does not exist",
+
+    await Election.create({
+      name: name,
+      description: description,
+      societyId: societyId,
+      societyOwnerId: voterId,
+      electionStatus: true,
     });
+    return res
+      .status(HTTP.STATUS_CREATED)
+      .send({ message: `${name} election has been created` });
   } catch (error) {
     console.log(error);
     return res
@@ -56,28 +60,30 @@ export const createElection = async (req: Request, res: Response) => {
 
 //TODO: Add a check so that candidates cannot be added once an election
 export const addCandidate = async (req: Request, res: Response) => {
-  const { electionId, candidateAlias, candidateName, description } = req.body;
+  const electionId = req.params.electionId;
+  const { candidateAlias, candidateName, description } = req.body;
   try {
     if (await doesElectionExist(electionId)) {
-      if (await isNewCandidate(electionId, candidateName, candidateAlias)) {
-        await ElectionCandidates.create({
-          electionId: electionId,
-          candidateName: candidateName,
-          candidateAlias: candidateAlias,
-          description: description,
-        });
-        return res.status(HTTP.STATUS_CREATED).send({
-          message:
-            "You have successfully added this candidate to this election",
-        });
-      }
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
-        .send({ message: "This candidate is already a part of this election" });
+        .send({ message: "This election does not exist" });
     }
-    return res
-      .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "This election does not exist" });
+
+    if (await isNewCandidate(electionId, candidateName, candidateAlias)) {
+      return res.status(HTTP.STATUS_BAD_REQUEST).send({
+        message: "This candidate is already a part of this election",
+      });
+    }
+
+    await ElectionCandidates.create({
+      electionId: electionId,
+      candidateName: candidateName,
+      candidateAlias: candidateAlias,
+      description: description,
+    });
+    return res.status(HTTP.STATUS_CREATED).send({
+      message: "You have successfully added this candidate to this election",
+    });
   } catch (error) {
     console.log(error);
     return res
@@ -189,75 +195,112 @@ export const getElectionResults = async (req: Request, res: Response) => {
 
 //TODO: Add a feature where the election can only be opened once to stop changes?
 export const openElection = async (req: Request, res: Response) => {
-  const { electionId, voterId, societyId, electionStatus } = req.body;
+  const electionId = req.params.electionId;
+
+  const electionName = await Election.findOne({
+    where: {
+      electionId: electionId,
+    },
+  });
+
+  const { voterId, societyId, electionStatus } = req.body;
   try {
     if (await doesElectionExist(electionId)) {
-      if (await isSocietyOwner(societyId, voterId)) {
-        if (await isElectionOpen(electionId)) {
-          await Election.update(
-            { electionStatus: electionStatus },
-            {
-              where: {
-                electionId: electionId,
-              },
-            }
-          );
-          return res
-            .status(HTTP.STATUS_OK)
-            .send({ message: "Election is now open" });
-        }
-        return res
-          .status(HTTP.STATUS_BAD_REQUEST)
-          .send({ message: "This election is already open" });
-      }
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: `${electionName?.name} election does not exist` });
+    }
+    if (await isSocietyOwner(societyId, voterId)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "You are not the owner of this society" });
     }
+    if (await isElectionClose(electionId)) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: `${electionName?.name} election is already open` });
+    }
+    await Election.update(
+      { electionStatus: electionStatus },
+      {
+        where: {
+          electionId: electionId,
+        },
+      }
+    );
     return res
-      .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "This election does not exist" });
+      .status(HTTP.STATUS_OK)
+      .send({ message: `${electionName?.name}  election is now open` });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: "Unable to open vote" });
+      .send({ message: `Unable to open ${electionName?.name}` });
   }
 };
 
 export const closeElection = async (req: Request, res: Response) => {
-  const { electionId, voterId, societyId, electionStatus } = req.body;
+  const electionId = req.params.electionId;
+
+  const electionName = await Election.findOne({
+    where: {
+      electionId: electionId,
+    },
+  });
+
+  const { voterId, societyId, electionStatus } = req.body;
   try {
     if (await doesElectionExist(electionId)) {
-      if (await isSocietyOwner(societyId, voterId)) {
-        if (!(await isElectionOpen(electionId))) {
-          await Election.update(
-            { electionStatus: electionStatus },
-            {
-              where: {
-                electionId: electionId,
-              },
-            }
-          );
-          return res
-            .status(HTTP.STATUS_OK)
-            .send({ message: "This election is now closed" });
-        }
-        return res
-          .status(HTTP.STATUS_BAD_REQUEST)
-          .send({ message: "This election is already closed" });
-      }
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: `${electionName?.name} election does not exist` });
+    }
+    if (await isSocietyOwner(societyId, voterId)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "You are not the owner of this society" });
     }
+    if (await isElectionOpen(electionId)) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: `${electionName?.name} election is already closed` });
+    }
+    await Election.update(
+      { electionStatus: electionStatus },
+      {
+        where: {
+          electionId: electionId,
+        },
+      }
+    );
     return res
-      .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "This election does not exist" });
+      .status(HTTP.STATUS_OK)
+      .send({ message: `${electionName?.name} is now closed` });
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: "Unable to close vote" });
+      .send({ message: `Unable to close ${electionName?.name} election` });
   }
 };
+
+export const getOwnedElections = async (req: Request, res: Response) => {
+  const voterId = req.params.voterId;
+  try {
+    const elections = await Election.findAll({
+      attributes: {
+        exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+      },
+      where: {
+        societyOwnerId: voterId,
+      },
+    });
+    return res.status(HTTP.STATUS_OK).send({ elections });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get societies" });
+  }
+};
+export const getAllElections = async (req: Request, res: Response) => {};

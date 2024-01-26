@@ -13,7 +13,7 @@ import {
 
 export const societyRouter = Router();
 
-societyRouter.post("/create/:id", createSociety);
+societyRouter.post("/create", createSociety);
 societyRouter.post("/create/upload-picture", uploadSocietyPicture);
 societyRouter.post("/join", joinSociety);
 societyRouter.post("/leave/:societyId/:voterId", leaveSociety);

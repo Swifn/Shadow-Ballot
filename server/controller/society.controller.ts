@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
 import { FileStorage, Society, VoterSociety } from "../models/index.js";
-import { isInSociety, doesSocietyExist, isNameUnique } from "../utils/utils.js";
+import {
+  isInSociety,
+  doesSocietyExist,
+  isNameUnique,
+  notInSociety,
+} from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import { v4 as uuid } from "uuid";
 import { ValidatedRequest } from "../middleware/jwt.middleware.js";
@@ -44,7 +49,7 @@ export const createSociety = async (req: Request, res: Response) => {
 export const deleteSociety = async (req: Request, res: Response) => {
   try {
     const societyId = req.params.societyId;
-    if (await !doesSocietyExist(societyId)) {
+    if (await doesSocietyExist(societyId)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "This society does not exist" });
@@ -71,30 +76,31 @@ export const deleteSociety = async (req: Request, res: Response) => {
 export const joinSociety = async (req: Request, res: Response) => {
   const { voterId, societyId } = req.body;
 
+  const societyName = await Society.findOne({
+    where: { societyId: societyId },
+  });
+
   try {
     if (await (societyId === null)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "Please select a society" });
     }
-
-    if (await doesSocietyExist(societyId)) {
-      if (await isInSociety(societyId, voterId)) {
-        return res
-          .status(HTTP.STATUS_BAD_REQUEST)
-          .send({ message: "You are already a part of this society" });
-      }
-      await VoterSociety.create({ societyId, voterId });
-      const societyName = await Society.findOne({
-        where: { societyId: societyId },
-      });
+    if (await !doesSocietyExist(societyId)) {
       return res
-        .status(HTTP.STATUS_OK)
-        .send({ message: `You have joined ${societyName?.name}` });
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "This society does not exist" });
     }
+    if (await notInSociety(societyId, voterId)) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: `You are already a part of ${societyName?.name}` });
+    }
+    await VoterSociety.create({ societyId, voterId });
+
     return res
-      .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "This society does not exist" });
+      .status(HTTP.STATUS_OK)
+      .send({ message: `You have joined ${societyName?.name}` });
   } catch (error) {
     console.log(error);
     return res
@@ -108,44 +114,28 @@ export const leaveSociety = async (req: Request, res: Response) => {
   const voterId = req.params.voterId;
   try {
     if (await doesSocietyExist(societyId)) {
-      if (await isInSociety(societyId, voterId)) {
-        const leave =
-          (await VoterSociety.destroy({
-            where: {
-              societyId: societyId,
-              voterId: voterId,
-            },
-          })) === 1;
-        const updatedJoinedSocieties = await Society.findAll({
-          include: [
-            {
-              model: VoterSociety,
-              attributes: [],
-              where: {
-                voterId: voterId,
-              },
-            },
-          ],
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "This society does not exist" });
+    }
 
-          attributes: {
-            exclude: ["societyOwnerId", "createdAt", "updatedAt"],
-          },
-        });
-
-        if (leave) {
-          return res.status(HTTP.STATUS_OK).send({
-            message: "You have left this society",
-            joinedSocieties: updatedJoinedSocieties,
-          });
-        }
-      }
+    if (await isInSociety(societyId, voterId)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "You are not a part of this society" });
     }
-    return res
-      .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "This society does not exist" });
+
+    const societies =
+      (await VoterSociety.destroy({
+        where: {
+          societyId: societyId,
+          voterId: voterId,
+        },
+      })) === 1;
+    return res.status(HTTP.STATUS_OK).send({
+      message: "You have left this society",
+      societies,
+    });
   } catch (error) {
     console.log(error);
     return res

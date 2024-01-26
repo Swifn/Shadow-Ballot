@@ -48,11 +48,11 @@ export const Join = () => {
           if (response.ok) {
             setSuccess(responseMessage);
             setError(null);
-            navigate(Routes.SOCIETY());
           } else {
             setSuccess(null);
             setError(responseMessage);
           }
+          setSelectedSociety(null);
         } catch (error) {
           console.log(error);
         }
@@ -78,19 +78,22 @@ export const Join = () => {
     fetchAllSocieties();
   }, []);
 
-  useEffect(() => {
-    if (getAllResult) {
-      const societyNames = getAllResult.map(society => society.name);
-      setSocieties(societyNames);
-    }
-  }, [getAllResult]);
-
   return (
     <AuthenticatedRoute>
       <div>
         <Helmet>
           <title>Join a society</title>
         </Helmet>
+        <div className={styles.notification}>
+          {error && <InlineNotification title={error} hideCloseButton />}
+          {success && (
+            <InlineNotification
+              title={success}
+              hideCloseButton
+              kind="success"
+            />
+          )}
+        </div>
         <div className={styles.cardContainer}>
           {getAllResult &&
             getAllResult.map(society => (
@@ -107,14 +110,6 @@ export const Join = () => {
                 ]}
               />
             ))}
-          {error && <InlineNotification title={error} hideCloseButton />}
-          {success && (
-            <InlineNotification
-              title={success}
-              hideCloseButton
-              kind="success"
-            />
-          )}
         </div>
       </div>
     </AuthenticatedRoute>

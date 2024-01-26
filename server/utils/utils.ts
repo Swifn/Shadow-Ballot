@@ -12,10 +12,24 @@ export const doesSocietyExist = async (societyId: number): Promise<boolean> => {
     },
   });
 
-  return existingSociety !== null;
+  return existingSociety === null;
 };
 
 export const isInSociety = async (
+  societyId: number,
+  voterId: number
+): Promise<boolean> => {
+  const inSociety = await VoterSociety.findOne({
+    where: {
+      societyId: societyId,
+      voterId: voterId,
+    },
+  });
+
+  return inSociety === null;
+};
+
+export const notInSociety = async (
   societyId: number,
   voterId: number
 ): Promise<boolean> => {
@@ -52,7 +66,7 @@ export const isSocietyOwner = async (
     },
   });
 
-  return isOwner !== null;
+  return isOwner === null;
 };
 
 export const doesElectionExist = async (
@@ -64,7 +78,7 @@ export const doesElectionExist = async (
     },
   });
 
-  return existingElection !== null;
+  return existingElection === null;
 };
 
 export const isElectionOpen = async (electionId: number): Promise<boolean> => {
@@ -76,6 +90,16 @@ export const isElectionOpen = async (electionId: number): Promise<boolean> => {
   });
 
   return open === null;
+};
+export const isElectionClose = async (electionId: number): Promise<boolean> => {
+  const open = await Election.findOne({
+    where: {
+      electionId: electionId,
+      electionStatus: 1,
+    },
+  });
+
+  return open !== null;
 };
 
 export const isNewCandidate = async (
