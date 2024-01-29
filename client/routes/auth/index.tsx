@@ -4,7 +4,7 @@ import { Routes } from "../index";
 import { AnonymousRoute } from "../../components/conditional-route";
 import React from "react";
 import { Button, Stack } from "@carbon/react";
-import bg from "../../assets/bg.jpg";
+import bg from "/client/assets/bg.jpg";
 
 export const Auth = () => {
   const navigate = useNavigate();
@@ -24,15 +24,11 @@ export const Auth = () => {
               kind="ghost"
               size="md"
               onClick={navigate.bind(null, Routes.PRIVACY_POLICY())}
+              hidden
             >
               Privacy policy
             </Button>
           </div>
-          <span
-            role="img"
-            className={styles.background}
-            style={{ backgroundImage: `url(${bg})` }}
-          />
         </main>
       </div>
     </AnonymousRoute>
