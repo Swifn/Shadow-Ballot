@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import { InlineNotification } from "@carbon/react";
+import { Button, InlineNotification } from "@carbon/react";
 import { Delete, PortInput } from "@carbon/icons-react";
 import { get, post } from "../../utils/fetch";
 import { AuthenticatedRoute } from "../../components/conditional-route";
@@ -101,14 +101,14 @@ export const Join = () => {
                 name={society.name}
                 key={society.societyId}
                 description={society.description}
-                buttons={[
-                  {
-                    label: "Join",
-                    eventHandler: () => joinSocietyHandler(society.societyId),
-                    icon: PortInput,
-                  },
-                ]}
-              />
+              >
+                <Button
+                  onClick={() => joinSocietyHandler(society.societyId)}
+                  renderIcon={PortInput}
+                >
+                  Join
+                </Button>
+              </Cards>
             ))}
         </div>
       </div>

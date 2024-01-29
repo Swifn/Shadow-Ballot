@@ -1,7 +1,12 @@
-import { Request, Response } from "express";
-import { Election, Society } from "../models/index.js";
-import { ElectionCandidates } from "../models/index.js";
-import { Vote } from "../models/index.js";
+import { raw, Request, Response } from "express";
+import {
+  Election,
+  Vote,
+  ElectionCandidates,
+  Society,
+  VoterSociety,
+} from "../models/index.js";
+
 import {
   doesElectionExist,
   doesSocietyExist,
@@ -40,13 +45,14 @@ export const createElection = async (req: Request, res: Response) => {
         .send({ message: "You are not the owner of this society" });
     }
 
-    await Election.create({
+    const newElection = await Election.create({
       name: name,
       description: description,
       societyId: societyId,
       societyOwnerId: voterId,
       electionStatus: true,
     });
+
     return res
       .status(HTTP.STATUS_CREATED)
       .send({ message: `${name} election has been created` });
@@ -97,9 +103,9 @@ export const getElectionWithCandidates = async (
   req: Request,
   res: Response
 ) => {
-  const { id } = req.params;
+  const electionId = req.params.electionId;
   try {
-    const election = await Election.findByPk(id, {
+    const election = await Election.findByPk(electionId, {
       include: [
         {
           model: ElectionCandidates,
@@ -112,6 +118,16 @@ export const getElectionWithCandidates = async (
           ],
         },
       ],
+      attributes: {
+        exclude: [
+          "societyId",
+          "electionStatus",
+          "electionPicture",
+          "societyOwnerId",
+          "createdAt",
+          "updatedAt",
+        ],
+      },
     });
     if (!election) {
       return res
@@ -300,7 +316,49 @@ export const getOwnedElections = async (req: Request, res: Response) => {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: "Unable to get societies" });
+      .send({ message: "Unable to get owned elections" });
   }
 };
-export const getAllElections = async (req: Request, res: Response) => {};
+export const getAllElections = async (req: Request, res: Response) => {
+  try {
+    const elections = await Election.findAll({
+      attributes: {
+        exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+      },
+    });
+    return res.status(HTTP.STATUS_OK).send({ elections });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get elections" });
+  }
+};
+
+export const getSocietyElections = async (req: Request, res: Response) => {
+  const voterId = req.params.voterId;
+  try {
+    const societyElections = await VoterSociety.findAll({
+      where: { voterId: voterId },
+      include: [
+        {
+          model: Society,
+          include: [
+            {
+              model: Election,
+              attributes: {
+                exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+              },
+            },
+          ],
+          attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
+        },
+      ],
+      attributes: [],
+    });
+
+    return res.status(HTTP.STATUS_OK).send({ societyElections });
+  } catch (error) {
+    console.log(error);
+  }
+};

@@ -15,17 +15,12 @@ export const Society = () => {
     <AuthenticatedRoute>
       <div className={styles.container}>
         <main>
-          <h1>Society</h1>
           <div>
             <Stack gap={8}>
               <Outlet />
             </Stack>
           </div>
-          <div className="Create">
-            {/*<Button onClick={navigate.bind(null, Routes.SOCIETY_CREATE())}>*/}
-            {/*  Create Society*/}
-            {/*</Button>*/}
-          </div>
+          <div className="Create"></div>
         </main>
       </div>
     </AuthenticatedRoute>

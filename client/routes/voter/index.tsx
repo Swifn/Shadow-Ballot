@@ -3,9 +3,20 @@ import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { get, patch, post } from "../../utils/fetch";
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import { Cards } from "../../components/cards";
-import { InlineNotification } from "@carbon/react";
+import { Button, InlineNotification, TextInput } from "@carbon/react";
 import styles from "./style.module.scss";
-import { Delete, PortInput, ResultNew, Edit, Close } from "@carbon/icons-react";
+import {
+  Delete,
+  PortInput,
+  ResultNew,
+  Edit,
+  Close,
+  Locked,
+  Unlocked,
+  FaceActivatedAdd,
+  Exit,
+  UserFollow,
+} from "@carbon/icons-react";
 import { ElectionModal } from "../../components/election-modal";
 import { TabComponent } from "../../components/tabs";
 
@@ -42,31 +53,30 @@ export const Voter = () => {
   const candidateStatusForm = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const voterId = localStorage.getItem("USER_ID");
+  const [modal, setModal] = useState(false);
 
+  const voterId = localStorage.getItem("USER_ID");
   const createElectionSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     const formData = new FormData(electionForm.current ?? undefined);
-
     formData.append("voterId", voterId);
+
     formData.append("societyId", createElectionForSociety);
 
     const body = Object.fromEntries(formData.entries());
-
     const response = await post("election/create", body);
     await setStateBasedOnResponse(response);
     setModal(!modal);
   };
-
   const addElectionCandidateSubmit = async (event: FormEvent) => {
     event.preventDefault();
+
     const formData = new FormData(candidateForm.current ?? undefined);
 
     // formData.append("societyId", selectedSociety);
 
     const body = Object.fromEntries(formData.entries());
-
     const response = await post(
       `election/${selectedElection}/add-candidate`,
       body
@@ -74,7 +84,6 @@ export const Voter = () => {
     await setStateBasedOnResponse(response);
     setModal(!modal);
   };
-
   const openElectionHandler = async (electionId: number, societyId: number) => {
     setError(null);
     setSuccess(null);
@@ -97,11 +106,9 @@ export const Voter = () => {
     setSelectedElection(electionId);
     setSelectedSociety(societyId);
   };
-
   const leaveSocietyHandler = async (societyId: number) => {
     setLeaveSocieties(societyId);
   };
-
   const deleteSocietyHandler = async (societyId: number) => {
     setDeleteSocieties(societyId);
   };
@@ -112,7 +119,6 @@ export const Voter = () => {
     setModal(!modal);
     setCreateElectionForSociety(societyId);
   };
-
   const setStateBasedOnResponse = async response => {
     const responseMessage = (await response.json()).message;
     if (response.ok) {
@@ -123,8 +129,6 @@ export const Voter = () => {
       setError(responseMessage);
     }
   };
-
-  const [modal, setModal] = useState(false);
 
   useEffect(() => {
     const electionStatusUpdateOpen = async () => {
@@ -213,6 +217,7 @@ export const Voter = () => {
             society => society.societyId !== deleteSocieties
           );
           setOwnedSocieties(updatedSocieties);
+          setDeleteSocieties(null);
         } catch (error) {
           console.log(error);
         }
@@ -227,7 +232,7 @@ export const Voter = () => {
         try {
           const response = await post(
             `society/leave/${leaveSocieties}/${voterId}`
-          );
+          ).then(res => res.json());
           await setStateBasedOnResponse(response);
           const updatedSocieties = joinedSocieties.filter(
             society => society.societyId !== leaveSocieties
@@ -235,6 +240,7 @@ export const Voter = () => {
           setJoinedSocieties(updatedSocieties);
 
           await setStateBasedOnResponse(response);
+          setLeaveSocieties(null);
         } catch (error) {
           console.log(error);
         }
@@ -254,7 +260,6 @@ export const Voter = () => {
           a.name.localeCompare(b.name)
         );
         setJoinedSocieties(sortedSocieties);
-        console.log(sortedSocieties);
       } catch (error) {
         console.log(`Error when retrieving owned society data: ${error}`);
       }
@@ -325,66 +330,64 @@ export const Voter = () => {
                       name={society.name}
                       key={society.societyId}
                       description={society.description}
-                      buttons={[
-                        {
-                          label: "Create election",
-                          eventHandler: () =>
-                            createElectionHandler(society.societyId),
-                          icon: ResultNew,
-                          kind: "tertiary",
-                        },
-                        {
-                          label: "Edit",
-                          eventHandler: () =>
-                            editSocietyHandler(society.societyId),
-                          icon: Edit,
-                          kind: "primary",
-                        },
-
-                        {
-                          label: "Delete",
-                          eventHandler: () =>
-                            deleteSocietyHandler(society.societyId),
-                          icon: Delete,
-                          kind: "danger",
-                        },
-                      ]}
-                    />
+                    >
+                      <Button
+                        onClick={() => createElectionHandler(society.societyId)}
+                        renderIcon={ResultNew}
+                        kind={"tertiary"}
+                      >
+                        Create Election
+                      </Button>
+                      <Button
+                        onClick={() => editSocietyHandler(society.societyId)}
+                        renderIcon={Edit}
+                        kind={"primary"}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => deleteSocietyHandler(society.societyId)}
+                        renderIcon={Delete}
+                        kind={"danger"}
+                      >
+                        Delete
+                      </Button>
+                    </Cards>
                   ))}
-                <ElectionModal
-                  modal={modal}
-                  submit={createElectionSubmit}
-                  form={electionForm}
-                  modalheader={"Create election"}
-                  inputs={[
-                    {
-                      label: "Election Name",
-                      type: "text",
-                      name: "name",
-                      required: "true",
-                    },
-                    {
-                      label: "Description",
-                      type: "text",
-                      name: "description",
-                      required: "true",
-                    },
-                  ]}
-                  buttons={[
-                    {
-                      label: "Cancel",
-                      eventHandler: () => toggleModal(),
-                      icon: Close,
-                      kind: "danger",
-                    },
-                    {
-                      label: "Create",
-                      eventHandler: () => createElectionSubmit,
-                      icon: PortInput,
-                      kind: "primary",
-                    },
-                  ]}
-                />
+                <ElectionModal modal={modal}>
+                  <form ref={electionForm} onSubmit={createElectionSubmit}>
+                    <h3>Create Election</h3>
+                    <TextInput
+                      id={"election_name"}
+                      labelText={"Election Name"}
+                      type={"text"}
+                      name={"name"}
+                      required={true}
+                    />
+                    <TextInput
+                      id={"description"}
+                      labelText={"Description"}
+                      type={"text"}
+                      name={"description"}
+                      required={true}
+                    />
+                    <Button
+                      onClick={() => toggleModal()}
+                      renderIcon={Close}
+                      kind={"danger"}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => createElectionSubmit}
+                      renderIcon={PortInput}
+                      kind={"primary"}
+                      type={"submit"}
+                    >
+                      Create
+                    </Button>
+                  </form>
+                </ElectionModal>
               </div>
             </>,
             <>
@@ -396,16 +399,15 @@ export const Voter = () => {
                       name={society.name}
                       key={society.societyId}
                       description={society.description}
-                      buttons={[
-                        {
-                          label: "Leave",
-                          eventHandler: () =>
-                            leaveSocietyHandler(society.societyId),
-                          icon: PortInput,
-                          kind: "danger",
-                        },
-                      ]}
-                    />
+                    >
+                      <Button
+                        onClick={() => leaveSocietyHandler(society.societyId)}
+                        renderIcon={Exit}
+                        kind={"danger"}
+                      >
+                        Leave
+                      </Button>
+                    </Cards>
                   ))}
               </div>
             </>,
@@ -418,81 +420,89 @@ export const Voter = () => {
                       name={election.name}
                       key={election.electionId}
                       description={election.description}
-                      buttons={[
-                        {
-                          label: "Add Candidate",
-                          eventHandler: () =>
-                            addCandidateHandler(
-                              election.electionId,
-                              election.societyId
-                            ),
-                          icon: PortInput,
-                          kind: "tertiary",
-                        },
-                        {
-                          label: "Open Election",
-                          eventHandler: () =>
-                            openElectionHandler(
-                              election.electionId,
-                              election.societyId
-                            ),
-                          icon: PortInput,
-                          kind: "primary",
-                        },
-
-                        {
-                          label: "Close Election",
-                          eventHandler: () =>
-                            closeElectionHandler(
-                              election.electionId,
-                              election.societyId
-                            ),
-                          icon: PortInput,
-                          kind: "danger",
-                        },
-                      ]}
-                    />
+                    >
+                      <Button
+                        onClick={() =>
+                          addCandidateHandler(
+                            election.electionId,
+                            election.societyId
+                          )
+                        }
+                        renderIcon={UserFollow}
+                        kind={"tertiary"}
+                      >
+                        Add candidate
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          openElectionHandler(
+                            election.electionId,
+                            election.societyId
+                          )
+                        }
+                        renderIcon={Unlocked}
+                        kind={"primary"}
+                      >
+                        Open election
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          closeElectionHandler(
+                            election.electionId,
+                            election.societyId
+                          )
+                        }
+                        renderIcon={Locked}
+                        kind={"danger"}
+                      >
+                        Close election
+                      </Button>
+                    </Cards>
                   ))}
-                <ElectionModal
-                  modal={modal}
-                  submit={addElectionCandidateSubmit}
-                  form={candidateForm}
-                  modalheader={"Add candidate to election"}
-                  inputs={[
-                    {
-                      label: "Candidate Name",
-                      type: "text",
-                      name: "candidateName",
-                      required: "true",
-                    },
-                    {
-                      label: "Description",
-                      type: "text",
-                      name: "description",
-                      required: "true",
-                    },
-                    {
-                      label: "Alias",
-                      type: "text",
-                      name: "candidateAlias",
-                      required: "true",
-                    },
-                  ]}
-                  buttons={[
-                    {
-                      label: "Cancel",
-                      eventHandler: () => toggleModal(),
-                      icon: Close,
-                      kind: "danger",
-                    },
-                    {
-                      label: "Add",
-                      eventHandler: () => addElectionCandidateSubmit,
-                      icon: PortInput,
-                      kind: "primary",
-                    },
-                  ]}
-                />
+                <ElectionModal modal={modal}>
+                  <h3>Add candidate to election</h3>
+                  <form
+                    ref={candidateForm}
+                    onSubmit={addElectionCandidateSubmit}
+                  >
+                    <TextInput
+                      id={"candidateName"}
+                      labelText={"Candidate Name"}
+                      type={"text"}
+                      name={"candidateName"}
+                      required={true}
+                    />
+                    <TextInput
+                      id={"candidateName"}
+                      labelText={"Alias"}
+                      type={"text"}
+                      name={"candidateAlias"}
+                      required={true}
+                    />
+                    <TextInput
+                      id={"Description"}
+                      labelText={"Description"}
+                      type={"text"}
+                      name={"description"}
+                      required={true}
+                    />
+                    <Button
+                      onClick={() => toggleModal()}
+                      renderIcon={Close}
+                      kind={"danger"}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => addElectionCandidateSubmit}
+                      renderIcon={PortInput}
+                      kind={"primary"}
+                      type={"submit"}
+                    >
+                      Add
+                    </Button>
+                  </form>
+                </ElectionModal>
               </div>
             </>,
           ]}

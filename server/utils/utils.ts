@@ -119,7 +119,7 @@ export const isNewCandidate = async (
     },
   });
 
-  return newCandidate === null;
+  return newCandidate !== null;
 };
 
 export const isCandidateInElection = async (

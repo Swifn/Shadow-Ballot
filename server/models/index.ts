@@ -49,6 +49,7 @@ Voter.hasMany(Vote, { foreignKey: "voterId" });
 Vote.belongsTo(Voter, { foreignKey: "voterId" });
 Society.hasMany(VoterSociety, { foreignKey: "societyId" });
 VoterSociety.belongsTo(Society, { foreignKey: "societyId" });
+
 FileStorage.hasOne(Society, {
   foreignKey: "societyPicture",
   onDelete: "SET NULL",
@@ -56,17 +57,17 @@ FileStorage.hasOne(Society, {
 });
 Society.belongsTo(FileStorage, { foreignKey: "societyPicture" });
 FileStorage.hasOne(Election, {
-  foreignKey: "societyPicture",
+  foreignKey: "electionPicture",
   onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
-Election.belongsTo(FileStorage, { foreignKey: "societyPicture" });
+Election.belongsTo(FileStorage, { foreignKey: "electionPicture" });
 FileStorage.hasOne(ElectionCandidates, {
-  foreignKey: "societyPicture",
+  foreignKey: "candidatePicture",
   onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
-ElectionCandidates.belongsTo(FileStorage, { foreignKey: "societyPicture" });
+ElectionCandidates.belongsTo(FileStorage, { foreignKey: "candidatePicture" });
 
 //untested
 Election.hasMany(ElectionCandidates, { foreignKey: "electionId" });

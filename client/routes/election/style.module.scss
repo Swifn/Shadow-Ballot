@@ -1,0 +1,21 @@
+.cardContainer{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+
+}
+
+ElectionModal .cardContainer{
+  margin-left: 100px;
+  background-color: red;
+}
+
+.notification {
+  position: fixed;
+  top: 50px;
+  right: 0px;
+  z-index: 1000;
+  width: 300px;
+  max-height: 100vh;
+  overflow-y: auto;
+}

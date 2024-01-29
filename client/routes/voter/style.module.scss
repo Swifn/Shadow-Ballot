@@ -3,8 +3,7 @@
   justify-content: center;
   flex-wrap: wrap;
   margin-top: 100px;
-  min-width: 60vw;
-  min-height: 60vh;
+  //min-width: 60vw;
 }
 
 .notification {
@@ -15,17 +14,7 @@
   width: 300px;
   max-height: 100vh;
   overflow-y: auto;
-  transition: transform 0.3s ease-in-out;
 }
-
-.notification-enter {
-  transform: translateY(-100%);
-}
-
-.notification-enter-active {
-  transform: translateY(0);
-}
-
 
 h1{
   width: 100%;

@@ -9,6 +9,7 @@
   align-items: center;
   z-index: 10;
   background-color: rgba(0, 0, 0, 0.5);
+
 }
 
 .modalContent {
@@ -18,16 +19,22 @@
   z-index: 10000;
 }
 
+body.active-modal{
+  overflow-y: hidden;
+}
+
+.cardContainer{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
 .modalContent Button{
   border-radius: 8px;
   margin-top: 16px;
   margin-right: 16px;
   margin-left: 16px;
-
-}
-
-body.active-modal{
-  overflow-y: hidden;
 }
 
 .input{
