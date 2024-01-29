@@ -4,7 +4,6 @@ import { Routes } from "../index";
 import { AnonymousRoute } from "../../components/conditional-route";
 import React from "react";
 import { Button, Stack } from "@carbon/react";
-import bg from "/client/assets/bg.jpg";
 
 export const Auth = () => {
   const navigate = useNavigate();
