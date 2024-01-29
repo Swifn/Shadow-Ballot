@@ -74,12 +74,14 @@ export const SignIn = () => {
             name="password"
             type="password"
             invalid={error !== null}
+            className={styles.inputs}
           />
           <div className="submit">
             <Button
               renderIcon={PortInput}
               type="submit"
               disabled={!formEnabled}
+              className={styles.button}
             >
               Sign in
             </Button>

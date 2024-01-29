@@ -89,6 +89,7 @@ export const SignUp = () => {
               renderIcon={PortInput}
               type="submit"
               disabled={!formEnabled}
+              className={styles.button}
             >
               Submit
             </Button>
