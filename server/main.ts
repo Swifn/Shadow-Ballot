@@ -6,6 +6,7 @@ import { authRouter } from "./routes/auth.route.js";
 import { electionRouter } from "./routes/election.route.js";
 import { societyRouter } from "./routes/society.route.js";
 import { voterRouter } from "./routes/voter.route.js";
+import { voteRouter } from "./routes/vote.route.js";
 import cors from "cors";
 import { sequelize } from "./models/index.js";
 
@@ -19,6 +20,7 @@ app.use("/auth", authRouter);
 app.use("/election", electionRouter);
 app.use("/society", societyRouter);
 app.use("/voter", voterRouter);
+app.use("/vote", voteRouter);
 
 const server = app.listen(Config.PORT, async () => {
   await sequelize.sync();
