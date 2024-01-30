@@ -6,6 +6,7 @@ export const Routes = {
   NOT_FOUND: () => `/404`,
   VOTER: () => `/voter`,
   ELECTION: () => `/election`,
+  VOTE: () => `/vote`,
   PRIVACY_POLICY: () => `/privacy-policy`,
   SOCIETY: () => `/society`,
   SOCIETY_CREATE: () => `${Routes.SOCIETY()}/create`,

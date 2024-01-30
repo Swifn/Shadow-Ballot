@@ -129,10 +129,11 @@ export const Nav = () => {
                     className={styles.button}
                     kind={"ghost"}
                     renderIcon={Box}
-                    onClick={navigate.bind(null, Routes.ELECTION())}
+                    onClick={navigate.bind(null, Routes.VOTE())}
                   >
                     Vote
                   </Button>
+                  <SwitcherDivider />
                   <Button
                     className={styles.button}
                     kind={"ghost"}
@@ -141,7 +142,6 @@ export const Nav = () => {
                   >
                     Profile
                   </Button>
-                  <SwitcherDivider />
                   <Button
                     className={styles.button}
                     renderIcon={Logout}
