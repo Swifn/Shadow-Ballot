@@ -142,12 +142,12 @@ export const isNewVote = async (
 ): Promise<boolean> => {
   const newVote = await Vote.findOne({
     where: {
-      voteId: voterId,
+      voterId: voterId,
       electionId: electionId,
     },
   });
 
-  return newVote === null;
+  return newVote !== null;
 };
 
 export const kAnonymity = async electionId => {

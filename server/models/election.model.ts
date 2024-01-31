@@ -54,7 +54,7 @@ export const init = sequelize =>
       electionStatus: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: true,
+        defaultValue: false,
       },
       societyOwnerId: {
         type: DataTypes.INTEGER,

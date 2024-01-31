@@ -2,7 +2,12 @@ import React from "react";
 import styles from "./style.module.scss";
 import { Cards } from "../cards";
 
-export const ElectionModalCards = ({ children, modal, cardContents }) => {
+export const ElectionModalCards = ({
+  children,
+  cardChildren,
+  modal,
+  cardContents,
+}) => {
   return (
     <>
       {modal && (
@@ -16,7 +21,9 @@ export const ElectionModalCards = ({ children, modal, cardContents }) => {
                       name={contents.candidateName}
                       key={contents.candidateAlias}
                       description={contents.description}
-                    ></Cards>
+                    >
+                      {cardChildren}
+                    </Cards>
                   ))}
               </div>
               {children}

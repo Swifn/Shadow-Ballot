@@ -10,9 +10,7 @@ import {
 import {
   doesElectionExist,
   doesSocietyExist,
-  isCandidateInElection,
   isElectionOpen,
-  isNewVote,
   isSocietyOwner,
   isNewCandidate,
   isElectionClose,
@@ -144,25 +142,33 @@ export const getElectionWithCandidates = async (
 };
 
 export const getElectionResults = async (req: Request, res: Response) => {
-  const { electionId } = req.params;
+  const electionId = req.params.electionId;
   try {
     const results = await Vote.findAll({
       where: {
         electionId: electionId,
       },
       attributes: [
-        "candidateId",
-        [Sequelize.fn("COUNT", Sequelize.col("voteId")), "totalVotes"],
+        ["candidateId", "candidateId"],
+        [
+          Sequelize.fn("COUNT", Sequelize.col("Vote.candidateId")),
+          "totalVotes",
+        ],
       ],
       include: [
         {
           model: ElectionCandidates,
-          attributes: ["name"],
+          as: "ElectionCandidate",
+          attributes: ["candidateName", "candidateAlias", "description"],
         },
       ],
-      group: ["candidateId", ElectionCandidates.tableName + ".name"],
+      group: [
+        "Vote.candidateId",
+        "ElectionCandidate.candidateName",
+        "ElectionCandidate.candidateAlias",
+        "ElectionCandidate.description",
+      ],
       order: [[Sequelize.col("totalVotes"), "DESC"]],
-      raw: true,
     });
 
     return res.status(HTTP.STATUS_OK).send(results);
@@ -296,7 +302,7 @@ export const getAllElections = async (req: Request, res: Response) => {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: "Unable to get elections" });
+      .send({ message: "Unable to fetch elections" });
   }
 };
 
@@ -325,5 +331,8 @@ export const getSocietyElections = async (req: Request, res: Response) => {
     return res.status(HTTP.STATUS_OK).send({ societyElections });
   } catch (error) {
     console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to fetch society elections" });
   }
 };

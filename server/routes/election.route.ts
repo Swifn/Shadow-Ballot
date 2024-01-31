@@ -25,4 +25,4 @@ electionRouter.get("/get-society-elections/:voterId", getSocietyElections);
 electionRouter.get("/get-owned/:voterId", getOwnedElections);
 electionRouter.patch("/:electionId/election-status/open", openElection);
 electionRouter.patch("/:electionId/election-status/close", closeElection);
-electionRouter.get("/results/:id", getElectionResults);
+electionRouter.get("/results/:electionId", getElectionResults);

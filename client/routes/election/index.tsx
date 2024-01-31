@@ -7,7 +7,6 @@ import styles from "./style.module.scss";
 import { get } from "../../utils/fetch";
 import { Close, View } from "@carbon/icons-react";
 import { TabComponent } from "../../components/tabs";
-import { ElectionModal } from "../../components/election-modal";
 import { ElectionModalCards } from "../../components/modal-cards";
 
 interface electionCandidates {
@@ -36,12 +35,6 @@ export const Election = () => {
   const [modal, setModal] = useState(false);
   const voterId = localStorage.getItem("USER_ID");
 
-  const viewCandidateHandler = async (electionId: number | null) => {
-    setModal(!modal);
-    setSelectedElection(electionId);
-    console.log(modal);
-  };
-
   useEffect(() => {
     const fetchAllElections = async () => {
       try {
@@ -64,6 +57,7 @@ export const Election = () => {
           .flat()
           .sort((a, b) => a.name.localeCompare(b.name));
         setGetSocietyElections(elections);
+        console.log(elections);
       } catch (error) {
         console.log(error);
       }
@@ -83,8 +77,13 @@ export const Election = () => {
       }
     };
     fetchAllElections();
-  }, [voterId, selectedElection]);
+  }, [voterId, selectedElection, getElectionCandidates]);
 
+  const viewCandidateHandler = async (electionId: number | null) => {
+    setModal(!modal);
+    setSelectedElection(electionId);
+    console.log(modal);
+  };
   const toggleModal = () => {
     setModal(!modal);
     setSelectedElection(0);

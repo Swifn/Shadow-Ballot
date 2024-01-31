@@ -9,9 +9,19 @@
 .notification {
   position: fixed;
   top: 50px;
-  right: 0px;
+  right: 0;
   z-index: 1000;
   width: 300px;
   max-height: 100vh;
   overflow-y: auto;
+}
+
+.form{
+  width: 275px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  margin: 20px;
+  padding: 16px;
+  background-color: white;
 }

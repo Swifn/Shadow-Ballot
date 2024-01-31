@@ -1,6 +1,16 @@
 import { Router } from "express";
-import { castVote } from "../controller/vote.controller.js";
+import {
+  castVote,
+  getOpenElections,
+  getClosedElections,
+} from "../controller/vote.controller.js";
 
 export const voteRouter = Router();
 
-voteRouter.get("/:id", castVote);
+voteRouter.post(
+  "/election/:electionId/voter/:voterId/candidate/:candidateId",
+  castVote
+);
+
+voteRouter.get("/get-open-elections/:voterId", getOpenElections);
+voteRouter.get("/get-closed-elections/:voterId", getClosedElections);

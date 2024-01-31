@@ -69,14 +69,14 @@ export const Voter = () => {
     await setStateBasedOnResponse(response);
     setModal(!modal);
   };
+
   const addElectionCandidateSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     const formData = new FormData(candidateForm.current ?? undefined);
 
-    // formData.append("societyId", selectedSociety);
-
     const body = Object.fromEntries(formData.entries());
+
     const response = await post(
       `election/${selectedElection}/add-candidate`,
       body
@@ -129,7 +129,6 @@ export const Voter = () => {
       setError(responseMessage);
     }
   };
-
   useEffect(() => {
     const electionStatusUpdateOpen = async () => {
       if (openElection !== null) {
@@ -152,12 +151,11 @@ export const Voter = () => {
           setSelectedElection(null);
           setCloseElection(null);
           setOpenElection(null);
+          console.log("IN USE EFFECT");
         } catch (error) {
           console.log(error);
         }
       }
-
-      console.log(openElection);
     };
     electionStatusUpdateOpen();
   }, [
@@ -167,6 +165,27 @@ export const Voter = () => {
     setOpenElection,
     setSelectedElection,
   ]);
+
+  // useEffect(() => {
+  //   const createElectionSubmit = async (event: FormEvent) => {
+  //     try {
+  //       event.preventDefault();
+  //
+  //       const formData = new FormData(electionForm.current ?? undefined);
+  //       formData.append("voterId", voterId);
+  //
+  //       formData.append("societyId", createElectionForSociety);
+  //
+  //       const body = Object.fromEntries(formData.entries());
+  //       const response = await post("election/create", body);
+  //       await setStateBasedOnResponse(response);
+  //       setModal(!modal);
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
+  //   createElectionSubmit();
+  // }, [voterId, createElectionForSociety, modal]);
 
   useEffect(() => {
     const electionStatusUpdateClose = async () => {
@@ -190,13 +209,10 @@ export const Voter = () => {
           setSelectedElection(null);
           setCloseElection(null);
           setOpenElection(null);
-          console.log(closeElection);
         } catch (error) {
           console.log(error);
         }
       }
-
-      console.log(closeElection);
     };
     electionStatusUpdateClose();
   }, [
@@ -228,11 +244,11 @@ export const Voter = () => {
 
   useEffect(() => {
     const leaveSociety = async () => {
-      if (leaveSocieties != null) {
+      if (leaveSocieties !== null) {
         try {
           const response = await post(
             `society/leave/${leaveSocieties}/${voterId}`
-          ).then(res => res.json());
+          );
           await setStateBasedOnResponse(response);
           const updatedSocieties = joinedSocieties.filter(
             society => society.societyId !== leaveSocieties
@@ -240,11 +256,11 @@ export const Voter = () => {
           setJoinedSocieties(updatedSocieties);
 
           await setStateBasedOnResponse(response);
-          setLeaveSocieties(null);
         } catch (error) {
           console.log(error);
         }
       }
+      setLeaveSocieties(null);
     };
     leaveSociety();
   }, [leaveSocieties, voterId, joinedSocieties]);
@@ -292,6 +308,8 @@ export const Voter = () => {
     fetchData();
   }, [voterId]);
 
+  useEffect(() => {}, []);
+
   const toggleModal = () => {
     setModal(!modal);
     setCreateElectionForSociety(0);
@@ -305,8 +323,8 @@ export const Voter = () => {
           <title>My Societies</title>
         </Helmet>
         <div className={styles.notification}>
-          {error && <InlineNotification title={error} />}
           {success && <InlineNotification title={success} kind="success" />}
+          {error && <InlineNotification title={error} />}
         </div>
         <TabComponent
           tabListNames={[
