@@ -1,8 +1,8 @@
 export const Config = {
   APP: {
-    NAME: "SVS Chain",
+    NAME: "AVS Chain",
     LOGO: "",
-    URLS: ["https://svschain.bham.team", "https://aib924.bham.team"],
+    URLS: ["https://avschain.bham.team", "https://aib924.bham.team"],
   },
   ORG: {
     NAME: "The University of Birmingham",

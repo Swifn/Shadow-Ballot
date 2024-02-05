@@ -28,19 +28,18 @@ export const SignUp = () => {
     );
     const response = await post("auth/sign-up", body);
 
-    const responseMessage = (await response.json()).message;
+    await setStateBasedOnResponse(response);
+  };
 
-    if (!response.ok) {
-      setError(responseMessage);
-      setSuccess(null);
-      setFormEnabled(true);
-    } else {
+  const setStateBasedOnResponse = async response => {
+    const responseMessage = (await response.json()).message;
+    if (response.ok) {
       setSuccess(responseMessage);
       setError(null);
-      setTimeout(() => {
-        navigate(Routes.AUTH_SIGN_IN());
-      }, 2000);
-      return;
+    } else {
+      setSuccess(null);
+      setError(responseMessage);
+      setFormEnabled(true);
     }
   };
 
@@ -49,6 +48,10 @@ export const SignUp = () => {
       <Helmet>
         <title>Get started with {Config.APP.NAME}</title>
       </Helmet>
+      <div className={styles.notification}>
+        {success && <InlineNotification title={success} kind="success" />}
+        {error && <InlineNotification title={error} />}
+      </div>
       <h2>Sign up</h2>
       <p className={styles.logInHint}>
         Already have an account?{" "}
@@ -93,14 +96,6 @@ export const SignUp = () => {
             >
               Submit
             </Button>
-            {error && <InlineNotification title={error} hideCloseButton />}
-            {success && (
-              <InlineNotification
-                title={success}
-                hideCloseButton
-                kind="success"
-              />
-            )}
           </div>
         </Stack>
       </form>

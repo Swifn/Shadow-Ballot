@@ -31,12 +31,6 @@ export const init = sequelize =>
         type: DataTypes.TEXT,
         allowNull: false,
         unique: true,
-        validate: {
-          is: {
-            args: [Config.ORG_EMAIL_REGEX],
-            msg: "Email must be university authenticated",
-          },
-        },
       },
       password: {
         type: DataTypes.TEXT,

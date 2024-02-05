@@ -66,6 +66,7 @@ export const Voter = () => {
 
     const body = Object.fromEntries(formData.entries());
     const response = await post("election/create", body);
+    await getElectionData(voterId);
     await setStateBasedOnResponse(response);
     setModal(!modal);
   };
@@ -165,6 +166,20 @@ export const Voter = () => {
     setOpenElection,
     setSelectedElection,
   ]);
+
+  const getElectionData = async response => {
+    try {
+      const response = await get(`election/get-owned/${voterId}`).then(res =>
+        res.json()
+      );
+      const sortedElections = response.elections.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      setOwnedElections(sortedElections);
+    } catch (error) {
+      console.log(`Error when retrieving owned Election data: ${error}`);
+    }
+  };
 
   // useEffect(() => {
   //   const createElectionSubmit = async (event: FormEvent) => {
@@ -292,21 +307,12 @@ export const Voter = () => {
       } catch (error) {
         console.log(`Error when retrieving owned society data: ${error}`);
       }
-      try {
-        const response = await get(`election/get-owned/${voterId}`).then(res =>
-          res.json()
-        );
-        const sortedElections = response.elections.sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        setOwnedElections(sortedElections);
-      } catch (error) {
-        console.log(`Error when retrieving owned Election data: ${error}`);
-      }
+
+      await getElectionData(voterId);
     };
 
     fetchData();
-  }, [voterId]);
+  }, [createElectionForSociety, voterId]);
 
   useEffect(() => {}, []);
 

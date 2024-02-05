@@ -74,8 +74,10 @@ Election.hasMany(ElectionCandidates, { foreignKey: "electionId" });
 ElectionCandidates.belongsTo(Election, { foreignKey: "electionId" });
 Society.hasMany(Election, { foreignKey: "societyId" });
 Election.belongsTo(Society, { foreignKey: "societyId" });
+
 ElectionCandidates.hasMany(Vote, { foreignKey: "candidateId" });
 Vote.belongsTo(ElectionCandidates, { foreignKey: "candidateId" });
+
 Election.hasMany(Vote, { foreignKey: "electionId" });
 Vote.belongsTo(Election, { foreignKey: "electionId" });
 Voter.hasMany(Election, { foreignKey: "societyOwnerId" });

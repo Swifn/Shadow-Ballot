@@ -4,3 +4,19 @@
   flex-wrap: wrap;
   margin-top: 10px;
 }
+ .resultsContainer{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.notification {
+  position: fixed;
+  top: 50px;
+  right: 0;
+  z-index: 1000;
+  width: 300px;
+  max-height: 100vh;
+  overflow-y: auto;
+}

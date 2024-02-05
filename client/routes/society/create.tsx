@@ -1,18 +1,10 @@
 import { Helmet } from "react-helmet";
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import styles from "../society/style.module.scss";
-import {
-  Button,
-  FileUploader,
-  InlineNotification,
-  Stack,
-  TextInput,
-} from "@carbon/react";
+import { Button, InlineNotification, Stack, TextInput } from "@carbon/react";
 import { PortInput } from "@carbon/icons-react";
 import React, { FormEvent, useRef, useState } from "react";
-import { get, post, postFile } from "../../utils/fetch";
-import { Routes } from "../index";
-import { useNavigate } from "react-router-dom";
+import { post } from "../../utils/fetch";
 
 export const Create = () => {
   const form = useRef<HTMLFormElement>(null);
@@ -33,22 +25,20 @@ export const Create = () => {
 
     const body = Object.fromEntries(formData.entries());
 
-    console.log(body);
+    const response = await post("society/create", body);
+    await setStateBasedOnResponse(response);
+    setFormEnabled(true);
+  };
 
-    const bodyResponse = await post("society/create", body);
-    console.log(bodyResponse.json());
-
-    const bodyResponseMessage = (await bodyResponse.json()).message;
-    const socId = (await bodyResponse.json()).societyId;
-    console.log(bodyResponseMessage);
-    console.log(socId);
-    if (!bodyResponse.ok) {
-      console.log(bodyResponseMessage);
-      setError(bodyResponseMessage);
+  const setStateBasedOnResponse = async response => {
+    const responseMessage = (await response.json()).message;
+    if (response.ok) {
+      setSuccess(responseMessage);
+      setError(null);
+    } else {
       setSuccess(null);
-      setFormEnabled(true);
+      setError(responseMessage);
     }
-    return;
   };
 
   return (
@@ -57,6 +47,10 @@ export const Create = () => {
         <Helmet>
           <title>Society</title>
         </Helmet>
+        <div className={styles.notification}>
+          {success && <InlineNotification title={success} kind="success" />}
+          {error && <InlineNotification title={error} />}
+        </div>
         <div>
           <h1>Society</h1>
         </div>
@@ -89,14 +83,6 @@ export const Create = () => {
               >
                 Create Society
               </Button>
-              {error && <InlineNotification title={error} hideCloseButton />}
-              {success && (
-                <InlineNotification
-                  title={success}
-                  hideCloseButton
-                  kind="success"
-                />
-              )}
             </div>
           </Stack>
         </form>

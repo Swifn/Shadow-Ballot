@@ -4,9 +4,19 @@ import { AuthConfig } from "../configs/auth.config.js";
 import { Config } from "../configs/config.js";
 import { Voter } from "../models/index.js";
 import * as HTTP from "../utils/magicNumbers.js";
+import CryptoJS from "crypto-js";
 
-//TODO: hash or encrypt voter email addresses in the database to prevent identities being dereferenced
-// remove the REGEX?
+export const aesEncryption = (email: string): string => {
+  const key = CryptoJS.enc.Utf8.parse(AuthConfig.AES_SECRET_KEY);
+  const iv = CryptoJS.enc.Utf8.parse(AuthConfig.FIXED_IV); //using a fixed IV, so we can compare the email addresses
+  const cipher = CryptoJS.AES.encrypt(email, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7,
+  });
+  return cipher.toString();
+};
+
 export const signUp = async (req, res) => {
   const { email, password1, password2 } = req.body;
   if (!email && !password1 && !password2) {
@@ -37,11 +47,14 @@ export const signUp = async (req, res) => {
       .status(HTTP.STATUS_BAD_REQUEST)
       .send({ message: "Passwords don't match" });
   }
+
   const hash = await bcrypt.hash(password1, AuthConfig.SALT);
+
+  const anonymousEmail = aesEncryption(email);
 
   try {
     const newVoter = {
-      email: email,
+      email: anonymousEmail,
       password: hash,
     };
     await Voter.create(newVoter);
@@ -79,9 +92,11 @@ export const signIn = async (req, res) => {
       .status(HTTP.STATUS_BAD_REQUEST)
       .send({ message: "Please enter an password" });
 
+  const encryptedEmail = aesEncryption(email);
+
   const voter = await Voter.findOne({
     where: {
-      email: email,
+      email: encryptedEmail,
     },
   });
 

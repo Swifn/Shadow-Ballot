@@ -1,23 +1,22 @@
 import { Request, Response } from "express";
 import {
   Election,
-  Vote,
   ElectionCandidates,
   Society,
+  Vote,
   VoterSociety,
 } from "../models/index.js";
 
 import {
   doesElectionExist,
   doesSocietyExist,
-  isElectionOpen,
-  isSocietyOwner,
-  isNewCandidate,
   isElectionClose,
+  isElectionOpen,
+  isNewCandidate,
+  isSocietyOwner,
 } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import { Sequelize } from "sequelize";
-import { v4 as uuid } from "uuid";
 
 //TODO: have a time /  date option for when the vote should open and close.
 
@@ -53,7 +52,7 @@ export const createElection = async (req: Request, res: Response) => {
 
     return res
       .status(HTTP.STATUS_CREATED)
-      .send({ message: `${name} election has been created` });
+      .send({ message: `${name} election has been created`, newElection });
   } catch (error) {
     console.log(error);
     return res
@@ -144,33 +143,52 @@ export const getElectionWithCandidates = async (
 export const getElectionResults = async (req: Request, res: Response) => {
   const electionId = req.params.electionId;
   try {
-    const results = await Vote.findAll({
-      where: {
-        electionId: electionId,
-      },
+    //Fetch all candidates for the election
+    const candidates = await ElectionCandidates.findAll({
+      where: { electionId: electionId },
       attributes: [
-        ["candidateId", "candidateId"],
-        [
-          Sequelize.fn("COUNT", Sequelize.col("Vote.candidateId")),
-          "totalVotes",
-        ],
+        "candidateId",
+        "candidateName",
+        "candidateAlias",
+        "description",
       ],
-      include: [
-        {
-          model: ElectionCandidates,
-          as: "ElectionCandidate",
-          attributes: ["candidateName", "candidateAlias", "description"],
-        },
-      ],
-      group: [
-        "Vote.candidateId",
-        "ElectionCandidate.candidateName",
-        "ElectionCandidate.candidateAlias",
-        "ElectionCandidate.description",
-      ],
-      order: [[Sequelize.col("totalVotes"), "DESC"]],
     });
 
+    //Fetch vote counts for candidates
+    const votes = await Vote.findAll({
+      where: { electionId: electionId },
+      attributes: [
+        "candidateId",
+        [Sequelize.fn("COUNT", Sequelize.col("candidateId")), "totalVotes"],
+      ],
+      group: ["candidateId"],
+    });
+
+    const createVoteMap = votes => {
+      const voteCounts = {};
+      //iterate through each element in the votes array,
+      votes.forEach(vote => {
+        //extract the candidateId for each vote object inside the loop
+        const candidateId = vote.candidateId;
+        //assign the total votes for the corresponding candidateId in the voteCount object
+        voteCounts[candidateId] = vote.get("totalVotes");
+      });
+      //return the voteCount object with the data
+      return voteCounts;
+    };
+    //Utilising the function to generate a 'voteMap' from an array of votes
+    const voteMap = createVoteMap(votes);
+
+    //Merge the results so that all candidates are included even if they have no votes to their name
+    const results = candidates.map(candidate => {
+      return {
+        candidateId: candidate.candidateId,
+        candidateName: candidate.candidateName,
+        candidateAlias: candidate.candidateAlias,
+        description: candidate.description,
+        totalVotes: voteMap[candidate.candidateId] || 0, // Assign 0 if no votes found
+      };
+    });
     return res.status(HTTP.STATUS_OK).send(results);
   } catch (error) {
     console.log(error);

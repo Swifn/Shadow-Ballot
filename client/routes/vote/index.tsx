@@ -1,5 +1,5 @@
 import { AuthenticatedRoute } from "../../components/conditional-route";
-import styles from "../society/style.module.scss";
+import styles from "../vote/style.module.scss";
 import { Button, InlineNotification, Stack } from "@carbon/react";
 import React, { useEffect, useState } from "react";
 import { TabComponent } from "../../components/tabs";
@@ -9,6 +9,7 @@ import { Close, PortInput, View } from "@carbon/icons-react";
 import { ElectionModalCards } from "../../components/modal-cards";
 import { VoteModalCards } from "../../components/vote-modal";
 import { Helmet } from "react-helmet";
+import { LiveVotes } from "../../components/live-votes";
 
 interface Elections {
   electionId: number;
@@ -24,10 +25,20 @@ interface electionCandidates {
   description: string;
 }
 
+interface Results {
+  candidateId: number;
+  totalVotes: number;
+
+  candidateName: string;
+  candidateAlias: string;
+  description?: string;
+}
+
 export const Vote = () => {
   const [getOpenElections, setGetOpenElections] = useState<Elections[] | null>(
     []
   );
+  const [getResults, setGetResults] = useState<Results[] | null>([]);
   const [getClosedElections, setGetClosedElections] = useState<
     Elections[] | null
   >([]);
@@ -57,6 +68,7 @@ export const Vote = () => {
       setSuccess(null);
       setError(responseMessage);
     }
+    await setStateBasedOnResponse(null);
   };
 
   useEffect(() => {
@@ -67,6 +79,7 @@ export const Vote = () => {
             `vote/election/${selectedElection}/voter/${voterId}/candidate/${selectedCandidate}`
           ).then(res => res.json());
           await setStateBasedOnResponse(response);
+          setSelectedCandidate(null);
         } catch (error) {
           console.log(error);
         }
@@ -116,10 +129,19 @@ export const Vote = () => {
           ).then(res => res.json());
 
           setGetElectionCandidates(response.ElectionCandidates);
-          //setSelectedElection(null);
+          // setSelectedElection(null);
         } catch (error) {
           console.log(error);
         }
+      }
+
+      try {
+        const response = await get(`election/results/${selectedElection}`).then(
+          res => res.json()
+        );
+        setGetResults(response);
+      } catch (error) {
+        console.log(error);
       }
     };
 
@@ -132,8 +154,9 @@ export const Vote = () => {
   };
 
   const toggleModal = () => {
-    setGetElectionCandidates(null);
-    setSelectedCandidate(null);
+    console.log(getElectionCandidates);
+    console.log(selectedElection);
+    console.log(selectedCandidate);
     setModal(!modal);
   };
 
@@ -144,14 +167,8 @@ export const Vote = () => {
           <title>Vote</title>
         </Helmet>
         <div className={styles.notification}>
-          {error && <InlineNotification title={error} hideCloseButton />}
-          {success && (
-            <InlineNotification
-              title={success}
-              hideCloseButton
-              kind="success"
-            />
-          )}
+          {error && <InlineNotification title={error} />}
+          {success && <InlineNotification title={success} kind="success" />}
         </div>
         <div className={styles.container}>
           <main>
@@ -163,11 +180,11 @@ export const Vote = () => {
                       name: "Open Elections",
                     },
                     {
-                      name: "Close Elections",
+                      name: "Closed Elections",
                     },
-                    {
-                      name: "Elections you've participated in",
-                    },
+                    // {
+                    //   name: "Elections you've participated in",
+                    // },
                   ]}
                   tabContents={[
                     <>
@@ -198,6 +215,7 @@ export const Vote = () => {
                                   name={elections.candidateName}
                                   key={elections.candidateId}
                                   description={elections.description}
+                                  alias={elections.candidateAlias}
                                 >
                                   <Button
                                     renderIcon={PortInput}
@@ -208,6 +226,17 @@ export const Vote = () => {
                                     Vote
                                   </Button>
                                 </Cards>
+                              ))}
+                          </div>
+                          <h2>Live Votes</h2>
+                          <div className={styles.resultsContainer}>
+                            {getResults &&
+                              getResults.map(results => (
+                                <LiveVotes>
+                                  <h5>Name: {results.candidateName}</h5>
+                                  <h6>AKA: {results.candidateAlias}</h6>
+                                  <p>Total Votes: {results?.totalVotes}</p>
+                                </LiveVotes>
                               ))}
                           </div>
                           <Button
@@ -221,7 +250,7 @@ export const Vote = () => {
                       </div>
                     </>,
                     <>
-                      <h1>Close Elections</h1>
+                      <h1>Closed Elections</h1>
                       <div className={styles.cardContainer}>
                         {getClosedElections &&
                           getClosedElections.map(elections => (
@@ -254,9 +283,9 @@ export const Vote = () => {
                         </ElectionModalCards>
                       </div>
                     </>,
-                    <>
-                      <h1>Participated Elections</h1>
-                    </>,
+                    // <>
+                    //   <h1>Participated Elections</h1>
+                    // </>,
                   ]}
                 />
               </Stack>

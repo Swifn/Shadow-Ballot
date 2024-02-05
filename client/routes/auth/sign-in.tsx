@@ -14,6 +14,8 @@ export const SignIn = () => {
   const navigate = useNavigate();
   const form = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
   const [formEnabled, setFormEnabled] = useState(true);
   const setUser = useSetRecoilState(userState);
 
@@ -45,50 +47,55 @@ export const SignIn = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Sign In to {Config.APP.NAME}</title>
-      </Helmet>
-      <h2>Sign In</h2>
-      <p className="logInHint">
-        Dont have an account yet? {""}
-        <Link to={Routes.AUTH_SIGN_UP()}>Sign up instead</Link>
-      </p>
-      <form
-        aria-label="Sign in form"
-        className={styles.form}
-        ref={form}
-        onSubmit={submit}
-      >
-        <Stack gap={7}>
-          <TextInput
-            id="sign-in__email"
-            type="text"
-            labelText="Email"
-            name="email"
-            placeholder={Config.ORG.EMAIL_PLACEHOLDER}
-            invalid={error !== null}
-          />
-          <TextInput
-            id="sign-in__password1"
-            labelText="Password"
-            name="password"
-            type="password"
-            invalid={error !== null}
-            className={styles.inputs}
-          />
-          <div className="submit">
-            <Button
-              renderIcon={PortInput}
-              type="submit"
-              disabled={!formEnabled}
-              className={styles.button}
-            >
-              Sign in
-            </Button>
-            {error && <InlineNotification title={error} hideCloseButton />}
-          </div>
-        </Stack>
-      </form>
+      <div>
+        <Helmet>
+          <title>Sign In to {Config.APP.NAME}</title>
+        </Helmet>
+        <div className={styles.notification}>
+          {success && <InlineNotification title={success} kind="success" />}
+          {error && <InlineNotification title={error} />}
+        </div>
+        <h2>Sign In</h2>
+        <p className="logInHint">
+          Dont have an account yet? {""}
+          <Link to={Routes.AUTH_SIGN_UP()}>Sign up instead</Link>
+        </p>
+        <form
+          aria-label="Sign in form"
+          className={styles.form}
+          ref={form}
+          onSubmit={submit}
+        >
+          <Stack gap={7}>
+            <TextInput
+              id="sign-in__email"
+              type="text"
+              labelText="Email"
+              name="email"
+              placeholder={Config.ORG.EMAIL_PLACEHOLDER}
+              invalid={error !== null}
+            />
+            <TextInput
+              id="sign-in__password1"
+              labelText="Password"
+              name="password"
+              type="password"
+              invalid={error !== null}
+              className={styles.inputs}
+            />
+            <div className="submit">
+              <Button
+                renderIcon={PortInput}
+                type="submit"
+                disabled={!formEnabled}
+                className={styles.button}
+              >
+                Sign in
+              </Button>
+            </div>
+          </Stack>
+        </form>
+      </div>
     </>
   );
 };
