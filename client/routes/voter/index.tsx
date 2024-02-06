@@ -13,7 +13,6 @@ import {
   Close,
   Locked,
   Unlocked,
-  FaceActivatedAdd,
   Exit,
   UserFollow,
 } from "@carbon/icons-react";
@@ -60,9 +59,9 @@ export const Voter = () => {
     event.preventDefault();
 
     const formData = new FormData(electionForm.current ?? undefined);
-    formData.append("voterId", voterId);
+    formData.append("voterId", voterId ?? "");
 
-    formData.append("societyId", createElectionForSociety);
+    formData.append("societyId", createElectionForSociety!.toString() ?? "");
 
     const body = Object.fromEntries(formData.entries());
     const response = await post("election/create", body);
@@ -130,35 +129,40 @@ export const Voter = () => {
       setError(responseMessage);
     }
   };
-  useEffect(() => {
-    const electionStatusUpdateOpen = async () => {
-      if (openElection !== null) {
-        try {
-          const formData = new FormData(
-            candidateStatusForm.current ?? undefined
-          );
+  const electionStatusUpdateOpen = async () => {
+    if (openElection !== null) {
+      try {
+        const formData = new FormData(candidateStatusForm.current ?? undefined);
 
-          formData.append("societyId", selectedSociety);
-          formData.append("voterId", voterId);
-          formData.append("electionStatus", 1);
+        formData.append("societyId", selectedSociety!.toString());
+        formData.append("voterId", voterId ?? "");
+        formData.append("electionStatus", "1");
 
-          const body = Object.fromEntries(formData.entries());
+        const body = Object.fromEntries(formData.entries());
 
-          const response = await patch(
-            `election/${openElection}/election-status/open`,
-            body
-          );
-          await setStateBasedOnResponse(response);
-          setSelectedElection(null);
-          setCloseElection(null);
-          setOpenElection(null);
-          console.log("IN USE EFFECT");
-        } catch (error) {
-          console.log(error);
-        }
+        const response = await patch(
+          `election/${openElection}/election-status/open`,
+          body
+        );
+        await setStateBasedOnResponse(response);
+        setSelectedElection(null);
+        setCloseElection(null);
+        setOpenElection(null);
+        console.log("IN USE EFFECT");
+      } catch (error) {
+        console.log(error);
       }
-    };
-    electionStatusUpdateOpen();
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await electionStatusUpdateOpen();
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    })();
   }, [
     openElection,
     selectedSociety,
@@ -167,7 +171,7 @@ export const Voter = () => {
     setSelectedElection,
   ]);
 
-  const getElectionData = async response => {
+  const getElectionData = async voterId => {
     try {
       const response = await get(`election/get-owned/${voterId}`).then(res =>
         res.json()
@@ -181,55 +185,39 @@ export const Voter = () => {
     }
   };
 
-  // useEffect(() => {
-  //   const createElectionSubmit = async (event: FormEvent) => {
-  //     try {
-  //       event.preventDefault();
-  //
-  //       const formData = new FormData(electionForm.current ?? undefined);
-  //       formData.append("voterId", voterId);
-  //
-  //       formData.append("societyId", createElectionForSociety);
-  //
-  //       const body = Object.fromEntries(formData.entries());
-  //       const response = await post("election/create", body);
-  //       await setStateBasedOnResponse(response);
-  //       setModal(!modal);
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-  //   createElectionSubmit();
-  // }, [voterId, createElectionForSociety, modal]);
+  const electionStatusUpdateClose = async () => {
+    if (closeElection !== null) {
+      try {
+        const formData = new FormData(candidateStatusForm.current ?? undefined);
+
+        formData.append("societyId", selectedSociety!.toString());
+        formData.append("voterId", voterId!.toString());
+        formData.append("electionStatus", "0");
+
+        const body = Object.fromEntries(formData.entries());
+
+        const response = await patch(
+          `election/${closeElection}/election-status/close`,
+          body
+        );
+        await setStateBasedOnResponse(response);
+        setSelectedElection(null);
+        setCloseElection(null);
+        setOpenElection(null);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
 
   useEffect(() => {
-    const electionStatusUpdateClose = async () => {
-      if (closeElection !== null) {
-        try {
-          const formData = new FormData(
-            candidateStatusForm.current ?? undefined
-          );
-
-          formData.append("societyId", selectedSociety);
-          formData.append("voterId", voterId);
-          formData.append("electionStatus", 0);
-
-          const body = Object.fromEntries(formData.entries());
-
-          const response = await patch(
-            `election/${closeElection}/election-status/close`,
-            body
-          );
-          await setStateBasedOnResponse(response);
-          setSelectedElection(null);
-          setCloseElection(null);
-          setOpenElection(null);
-        } catch (error) {
-          console.log(error);
-        }
+    (async () => {
+      try {
+        await electionStatusUpdateClose();
+      } catch (error) {
+        console.error(error);
       }
-    };
-    electionStatusUpdateClose();
+    })();
   }, [
     closeElection,
     selectedSociety,
@@ -238,83 +226,101 @@ export const Voter = () => {
     setOpenElection,
   ]);
 
-  useEffect(() => {
-    const deleteSociety = async () => {
-      if (deleteSocieties !== null) {
-        try {
-          const response = await post(`society/delete/${deleteSocieties}`);
-          await setStateBasedOnResponse(response);
-          const updatedSocieties = ownedSocieties.filter(
-            society => society.societyId !== deleteSocieties
-          );
-          setOwnedSocieties(updatedSocieties);
-          setDeleteSocieties(null);
-        } catch (error) {
-          console.log(error);
-        }
+  const deleteSociety = async () => {
+    if (deleteSocieties !== null) {
+      try {
+        const response = await post(`society/delete/${deleteSocieties}`);
+        await setStateBasedOnResponse(response);
+        const updatedSocieties = ownedSocieties!.filter(
+          society => society.societyId !== deleteSocieties
+        );
+        setOwnedSocieties(updatedSocieties);
+        setDeleteSocieties(null);
+      } catch (error) {
+        console.log(error);
       }
-    };
-    deleteSociety();
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await deleteSociety();
+      } catch (error) {
+        console.error(error);
+      }
+    })();
   }, [deleteSocieties, ownedSocieties]);
 
-  useEffect(() => {
-    const leaveSociety = async () => {
-      if (leaveSocieties !== null) {
-        try {
-          const response = await post(
-            `society/leave/${leaveSocieties}/${voterId}`
-          );
-          await setStateBasedOnResponse(response);
-          const updatedSocieties = joinedSocieties.filter(
-            society => society.societyId !== leaveSocieties
-          );
-          setJoinedSocieties(updatedSocieties);
+  const leaveSociety = async () => {
+    if (leaveSocieties !== null) {
+      try {
+        const response = await post(
+          `society/leave/${leaveSocieties}/${voterId}`
+        );
+        await setStateBasedOnResponse(response);
+        const updatedSocieties = joinedSocieties!.filter(
+          society => society.societyId !== leaveSocieties
+        );
+        setJoinedSocieties(updatedSocieties);
 
-          await setStateBasedOnResponse(response);
-        } catch (error) {
-          console.log(error);
-        }
+        await setStateBasedOnResponse(response);
+      } catch (error) {
+        console.log(error);
       }
-      setLeaveSocieties(null);
-    };
-    leaveSociety();
+    }
+    setLeaveSocieties(null);
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await leaveSociety();
+      } catch (error) {
+        console.error(error);
+      }
+    })();
   }, [leaveSocieties, voterId, joinedSocieties]);
 
+  const fetchData = async () => {
+    try {
+      const response = await get(`society/get-joined/${voterId}`).then(res =>
+        res.json()
+      );
+      setJoinedSocieties(response.societies);
+      const sortedSocieties = response.societies.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      setJoinedSocieties(sortedSocieties);
+    } catch (error) {
+      console.log(`Error when retrieving owned society data: ${error}`);
+    }
+
+    try {
+      const response = await get(`society/get-owned/${voterId}`).then(res =>
+        res.json()
+      );
+      setOwnedSocieties(response.societies);
+      const sortedSocieties = response.societies.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      setOwnedSocieties(sortedSocieties);
+    } catch (error) {
+      console.log(`Error when retrieving owned society data: ${error}`);
+    }
+
+    await getElectionData(voterId);
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
-        const response = await get(`society/get-joined/${voterId}`).then(res =>
-          res.json()
-        );
-        setJoinedSocieties(response.societies);
-        const sortedSocieties = response.societies.sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        setJoinedSocieties(sortedSocieties);
+        await fetchData();
       } catch (error) {
-        console.log(`Error when retrieving owned society data: ${error}`);
+        console.error("An error occurred:", error);
       }
-
-      try {
-        const response = await get(`society/get-owned/${voterId}`).then(res =>
-          res.json()
-        );
-        setOwnedSocieties(response.societies);
-        const sortedSocieties = response.societies.sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        setOwnedSocieties(sortedSocieties);
-      } catch (error) {
-        console.log(`Error when retrieving owned society data: ${error}`);
-      }
-
-      await getElectionData(voterId);
-    };
-
-    fetchData();
+    })();
   }, [createElectionForSociety, voterId]);
-
-  useEffect(() => {}, []);
 
   const toggleModal = () => {
     setModal(!modal);
@@ -403,7 +409,6 @@ export const Voter = () => {
                       Cancel
                     </Button>
                     <Button
-                      onClick={() => createElectionSubmit}
                       renderIcon={PortInput}
                       kind={"primary"}
                       type={"submit"}
@@ -518,7 +523,6 @@ export const Voter = () => {
                       Cancel
                     </Button>
                     <Button
-                      onClick={() => addElectionCandidateSubmit}
                       renderIcon={PortInput}
                       kind={"primary"}
                       type={"submit"}

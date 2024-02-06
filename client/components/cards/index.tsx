@@ -1,7 +1,14 @@
 import React from "react";
 import styles from "./style.module.scss";
+interface props {
+  name: string;
+  alias?: string;
+  description: string;
+  profilePicture?: string;
+  children: React.ReactNode;
+}
 
-export const Cards = ({
+export const Cards: React.FC<props> = ({
   profilePicture = "/client/assets/bg.jpg",
   name,
   description,

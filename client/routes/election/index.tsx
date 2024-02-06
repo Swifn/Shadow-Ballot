@@ -35,49 +35,50 @@ export const Election = () => {
   const [modal, setModal] = useState(false);
   const voterId = localStorage.getItem("USER_ID");
 
-  useEffect(() => {
-    const fetchAllElections = async () => {
-      try {
-        const response = await get("election/get-all").then(res => res.json());
-        setGetAllElections(response.elections);
-        const sortedElections = response.elections.sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        setGetAllElections(sortedElections);
-      } catch (error) {
-        console.log(`Error when retrieving all election data: ${error}`);
-      }
+  const fetchData = async () => {
+    try {
+      const allElectionResponse = await get("election/get-all");
+      const sortedElections = (await allElectionResponse.json()).elections.sort(
+        (a, b) => a.name.localeCompare(b.name)
+      );
+      setGetAllElections(sortedElections);
 
+      const societyElectionResponse = await get(
+        `election/get-society-elections/${voterId}`
+      ).then(res => res.json());
+      const sortedSocietyElections = societyElectionResponse.societyElections
+        .map(societyElection => societyElection.Society.Elections)
+        .flat()
+        .sort((a, b) => a.name.localeCompare(b.name));
+      setGetSocietyElections(sortedSocietyElections);
+    } catch (error) {
+      console.log(`Error when retrieving all election data: ${error}`);
+    }
+
+    if (selectedElection != null) {
       try {
         const response = await get(
-          `election/get-society-elections/${voterId}`
+          `election/getElectionCandidates/${selectedElection}`
         ).then(res => res.json());
-        const elections = response.societyElections
-          .map(societyElection => societyElection.Society.Elections)
-          .flat()
-          .sort((a, b) => a.name.localeCompare(b.name));
-        setGetSocietyElections(elections);
-        console.log(elections);
+        const sortedCandidates = response.ElectionCandidates.sort((a, b) =>
+          a.candidateName.localeCompare(b.candidateName)
+        );
+        setGetElectionCandidates(sortedCandidates);
       } catch (error) {
         console.log(error);
       }
+    }
+  };
 
-      if (selectedElection != null) {
-        try {
-          const response = await get(
-            `election/getElectionCandidates/${selectedElection}`
-          ).then(res => res.json());
-
-          setGetElectionCandidates(response.ElectionCandidates);
-          console.log(getElectionCandidates);
-          setSelectedElection(null);
-        } catch (error) {
-          console.log(error);
-        }
+  useEffect(() => {
+    (async () => {
+      try {
+        await fetchData();
+      } catch (error) {
+        console.error("An error occurred:", error);
       }
-    };
-    fetchAllElections();
-  }, [voterId, selectedElection, getElectionCandidates]);
+    })();
+  }, [voterId, selectedElection]);
 
   const viewCandidateHandler = async (electionId: number | null) => {
     setModal(!modal);
@@ -86,8 +87,7 @@ export const Election = () => {
   };
   const toggleModal = () => {
     setModal(!modal);
-    setSelectedElection(0);
-    console.log(modal);
+    setSelectedElection(null);
   };
 
   return (

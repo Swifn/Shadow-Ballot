@@ -3,11 +3,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
-  ForeignKey,
   CreationOptional,
 } from "sequelize";
-import { Config } from "../configs/config.js";
-import { Society } from "./society.model.js";
 
 export class Voter extends Model<
   InferAttributes<Voter>,
@@ -17,7 +14,6 @@ export class Voter extends Model<
   declare email: string;
   declare password: string;
   declare admin: CreationOptional<boolean>;
-  //declare society: ForeignKey<Society["societyId"]>;
 }
 export const init = sequelize =>
   Voter.init(

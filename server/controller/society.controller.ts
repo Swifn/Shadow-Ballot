@@ -3,12 +3,12 @@ import { FileStorage, Society, VoterSociety } from "../models/index.js";
 import {
   isInSociety,
   doesSocietyExist,
-  isNameUnique,
   notInSociety,
+  notNameUnique,
+  notSocietyExist,
 } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import { v4 as uuid } from "uuid";
-import { ValidatedRequest } from "../middleware/jwt.middleware.js";
 
 export const createSociety = async (req: Request, res: Response) => {
   try {
@@ -20,7 +20,7 @@ export const createSociety = async (req: Request, res: Response) => {
         .send({ message: "Missing required fields" });
     }
 
-    if (await !isNameUnique(name)) {
+    if (await notNameUnique(name)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "A society with this name has already been created" });
@@ -86,7 +86,7 @@ export const joinSociety = async (req: Request, res: Response) => {
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "Please select a society" });
     }
-    if (await !doesSocietyExist(societyId)) {
+    if (await notSocietyExist(societyId)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
         .send({ message: "This society does not exist" });

@@ -14,6 +14,15 @@ export const doesSocietyExist = async (societyId: number): Promise<boolean> => {
 
   return existingSociety === null;
 };
+export const notSocietyExist = async (societyId: number): Promise<boolean> => {
+  const existingSociety = await Society.findOne({
+    where: {
+      societyId: societyId,
+    },
+  });
+
+  return existingSociety !== null;
+};
 
 export const isInSociety = async (
   societyId: number,
@@ -53,6 +62,18 @@ export const isNameUnique = async (name: string): Promise<boolean> => {
   });
 
   return uniqueName === null;
+};
+
+export const notNameUnique = async (name: string): Promise<boolean> => {
+  const uniqueName = await Society.findOne({
+    where: {
+      name: {
+        [Op.like]: name,
+      },
+    },
+  });
+
+  return uniqueName !== null;
 };
 
 export const isSocietyOwner = async (

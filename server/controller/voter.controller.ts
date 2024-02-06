@@ -1,5 +1,4 @@
 import { Election, Society, Voter } from "../models/index.js";
-import { ValidatedRequest } from "../middleware/jwt.middleware.js";
 import { Response, Request } from "express";
 import * as HTTP from "../utils/magicNumbers.js";
 export const getVoter = async (req: Request, res: Response) => {

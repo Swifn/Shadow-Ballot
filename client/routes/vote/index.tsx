@@ -71,81 +71,96 @@ export const Vote = () => {
     await setStateBasedOnResponse(null);
   };
 
-  useEffect(() => {
-    const vote = async () => {
-      if (selectedCandidate !== null) {
-        try {
-          const response = await post(
-            `vote/election/${selectedElection}/voter/${voterId}/candidate/${selectedCandidate}`
-          ).then(res => res.json());
-          await setStateBasedOnResponse(response);
-          setSelectedCandidate(null);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    };
-    vote();
-  }, [selectedCandidate, selectedElection, voterId]);
-
-  useEffect(() => {
-    const fetchAllElections = async () => {
+  const vote = async () => {
+    if (selectedCandidate !== null) {
       try {
-        const response = await get(`vote/get-open-elections/${voterId}`).then(
-          res => res.json()
-        );
-        const validElections = response.openElections.filter(
-          item => item.Society !== null
-        );
-        const sortedElections = validElections
-          .map(openElections => openElections.Society.Elections)
-          .flat()
-          .sort((a, b) => a.name.localeCompare(b.name));
-        setGetOpenElections(sortedElections);
-      } catch (error) {
-        console.log(`Error when retrieving open election data: ${error}`);
-      }
-
-      try {
-        const response = await get(`vote/get-closed-elections/${voterId}`).then(
-          res => res.json()
-        );
-        const validElections = response.closedElections.filter(
-          item => item.Society !== null
-        );
-        const sortedElections = validElections
-          .map(closedElections => closedElections.Society.Elections)
-          .flat()
-          .sort((a, b) => a.name.localeCompare(b.name));
-        setGetClosedElections(sortedElections);
-      } catch (error) {
-        console.log(`Error when retrieving open election data: ${error}`);
-      }
-
-      if (selectedElection != null) {
-        try {
-          const response = await get(
-            `election/getElectionCandidates/${selectedElection}`
-          ).then(res => res.json());
-
-          setGetElectionCandidates(response.ElectionCandidates);
-          // setSelectedElection(null);
-        } catch (error) {
-          console.log(error);
-        }
-      }
-
-      try {
-        const response = await get(`election/results/${selectedElection}`).then(
-          res => res.json()
-        );
-        setGetResults(response);
+        const response = await post(
+          `vote/election/${selectedElection}/voter/${voterId}/candidate/${selectedCandidate}`
+        ).then(res => res.json());
+        await setStateBasedOnResponse(response);
+        setSelectedCandidate(null);
       } catch (error) {
         console.log(error);
       }
-    };
+    }
+  };
 
-    fetchAllElections();
+  useEffect(() => {
+    (async () => {
+      try {
+        await vote();
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    })();
+  }, [selectedCandidate, selectedElection, voterId]);
+
+  const fetchData = async () => {
+    try {
+      const response = await get(`vote/get-open-elections/${voterId}`).then(
+        res => res.json()
+      );
+      const validElections = response.openElections.filter(
+        item => item.Society !== null
+      );
+      const sortedElections = validElections
+        .map(openElections => openElections.Society.Elections)
+        .flat()
+        .sort((a, b) => a.name.localeCompare(b.name));
+      setGetOpenElections(sortedElections);
+    } catch (error) {
+      console.log(`Error when retrieving open election data: ${error}`);
+    }
+
+    try {
+      const response = await get(`vote/get-closed-elections/${voterId}`).then(
+        res => res.json()
+      );
+      const validElections = response.closedElections.filter(
+        item => item.Society !== null
+      );
+      const sortedElections = validElections
+        .map(closedElections => closedElections.Society.Elections)
+        .flat()
+        .sort((a, b) => a.name.localeCompare(b.name));
+      setGetClosedElections(sortedElections);
+    } catch (error) {
+      console.log(`Error when retrieving open election data: ${error}`);
+    }
+
+    if (selectedElection != null) {
+      try {
+        const response = await get(
+          `election/getElectionCandidates/${selectedElection}`
+        ).then(res => res.json());
+
+        setGetElectionCandidates(response.ElectionCandidates);
+        // setSelectedElection(null);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    try {
+      const response = await get(`election/results/${selectedElection}`).then(
+        res => res.json()
+      );
+      setGetResults(response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await fetchData();
+        // Additional logic after fetchData if necessary
+      } catch (error) {
+        console.error("An error occurred:", error);
+        // Handle any errors here
+      }
+    })();
   }, [voterId, selectedElection]);
 
   const viewCandidateHandler = async (electionId: number | null) => {
@@ -182,9 +197,6 @@ export const Vote = () => {
                     {
                       name: "Closed Elections",
                     },
-                    // {
-                    //   name: "Elections you've participated in",
-                    // },
                   ]}
                   tabContents={[
                     <>

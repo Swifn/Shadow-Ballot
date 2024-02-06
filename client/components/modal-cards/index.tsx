@@ -2,7 +2,19 @@ import React from "react";
 import styles from "./style.module.scss";
 import { Cards } from "../cards";
 
-export const ElectionModalCards = ({
+interface electionCandidates {
+  candidateName: string;
+  candidateAlias: string;
+  description: string;
+}
+interface ElectionModalCardsProps {
+  children: React.ReactNode;
+  cardChildren?: React.ReactNode;
+  modal: boolean;
+  cardContents: electionCandidates[] | null;
+}
+
+export const ElectionModalCards: React.FC<ElectionModalCardsProps> = ({
   children,
   cardChildren,
   modal,

@@ -1,14 +1,5 @@
 import React from "react";
-import {
-  Tab,
-  Tabs,
-  TabList,
-  TabPanels,
-  TabPanel,
-  Checkbox,
-  Button,
-  TextInput,
-} from "@carbon/react";
+import { Tab, Tabs, TabList, TabPanels, TabPanel } from "@carbon/react";
 import styles from "./style.module.scss";
 
 interface tabNames {

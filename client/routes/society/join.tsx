@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Button, InlineNotification } from "@carbon/react";
-import { Delete, PortInput } from "@carbon/icons-react";
+import { PortInput } from "@carbon/icons-react";
 import { get, post } from "../../utils/fetch";
 import { AuthenticatedRoute } from "../../components/conditional-route";
-import { Routes } from "../index";
 import { useNavigate } from "react-router-dom";
 import { Cards } from "../../components/cards/index";
 import styles from "./style.module.scss";
@@ -35,10 +34,8 @@ export const Join = () => {
           const formData = new FormData();
 
           const voterId = localStorage.getItem("USER_ID");
-          if (voterId) {
-            formData.append("voterId", voterId);
-          }
-          formData.append("societyId", selectedSociety);
+          formData.append("voterId", voterId!.toString());
+          formData.append("societyId", selectedSociety!.toString());
 
           const body = Object.fromEntries(formData.entries());
           const response = await post(`society/join`, body);
