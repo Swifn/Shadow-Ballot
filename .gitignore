@@ -1,3 +1,6 @@
+#dependencies
+auth.config.ts
+
 # Logs
 logs
 *.log
