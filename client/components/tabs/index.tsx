@@ -2,10 +2,6 @@ import React from "react";
 import { Tab, Tabs, TabList, TabPanels, TabPanel } from "@carbon/react";
 import styles from "./style.module.scss";
 
-interface tabNames {
-  name: string;
-}
-
 export const TabComponent = ({ tabListNames, tabContents }) => {
   return (
     <>
