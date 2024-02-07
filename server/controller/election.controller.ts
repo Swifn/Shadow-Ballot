@@ -16,7 +16,7 @@ import {
   isSocietyOwner,
 } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
-import { Sequelize } from "sequelize";
+import { Config } from "../configs/config.js";
 
 //TODO: have a time /  date option for when the vote should open and close.
 
@@ -61,7 +61,6 @@ export const createElection = async (req: Request, res: Response) => {
   }
 };
 
-//TODO: Add a check so that candidates cannot be added once an election
 export const addCandidate = async (req: Request, res: Response) => {
   const electionId = req.params.electionId;
   const { candidateAlias, candidateName, description } = req.body;
@@ -154,30 +153,28 @@ export const getElectionResults = async (req: Request, res: Response) => {
       ],
     });
 
-    //Fetch vote counts for candidates
+    // Fetch vote counts for candidates
     const votes = await Vote.findAll({
-      where: { electionId: electionId },
-      attributes: [
-        "candidateId",
-        [Sequelize.fn("COUNT", Sequelize.col("candidateId")), "totalVotes"],
-      ],
-      group: ["candidateId"],
+      where: { electionId },
+      order: [["createdAt", "ASC"]], // Sort the votes in ascending order
+      attributes: ["candidateId"],
     });
 
-    const createVoteMap = votes => {
-      const voteCounts = {};
-      //iterate through each element in the votes array,
-      votes.forEach(vote => {
-        //extract the candidateId for each vote object inside the loop
-        const candidateId = vote.candidateId;
-        //assign the total votes for the corresponding candidateId in the voteCount object
-        voteCounts[candidateId] = vote.get("totalVotes");
-      });
-      //return the voteCount object with the data
-      return voteCounts;
-    };
-    //Utilising the function to generate a 'voteMap' from an array of votes
-    const voteMap = createVoteMap(votes);
+    // Create a map to count votes for each candidate
+    const voteCounts = {};
+    votes.forEach(vote => {
+      voteCounts[vote.candidateId] = (voteCounts[vote.candidateId] || 0) + 1;
+    });
+
+    let totalElectionVotes = votes.length;
+
+    // Exclude the latest vote if totalElectionVotes is odd
+    if (totalElectionVotes % 2 !== 0) {
+      const latestVote = votes[votes.length - 1]; // Get the latest vote
+      voteCounts[latestVote.candidateId] -= 1; // Remove the latest vote from the count
+      totalElectionVotes -= 1; // adjust the totalElectionVotes
+      console.log(`Total votes: ${totalElectionVotes}`);
+    }
 
     //Merge the results so that all candidates are included even if they have no votes to their name
     const results = candidates.map(candidate => {
@@ -186,7 +183,7 @@ export const getElectionResults = async (req: Request, res: Response) => {
         candidateName: candidate.candidateName,
         candidateAlias: candidate.candidateAlias,
         description: candidate.description,
-        totalVotes: voteMap[candidate.candidateId] || 0, // Assign 0 if no votes found
+        totalVotes: voteCounts[candidate.candidateId] || 0, // Assign 0 if no votes found
       };
     });
     return res.status(HTTP.STATUS_OK).send(results);

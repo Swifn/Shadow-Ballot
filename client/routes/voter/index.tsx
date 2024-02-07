@@ -53,6 +53,7 @@ export const Voter = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
+  const [modalContext, setModalContext] = useState<string | null>(null);
 
   const voterId = localStorage.getItem("USER_ID");
   const createElectionSubmit = async (event: FormEvent) => {
@@ -116,7 +117,6 @@ export const Voter = () => {
     setEditSocieties(societyId);
   };
   const createElectionHandler = async (societyId: number) => {
-    setModal(!modal);
     setCreateElectionForSociety(societyId);
   };
   const setStateBasedOnResponse = async response => {
@@ -236,6 +236,7 @@ export const Voter = () => {
         );
         setOwnedSocieties(updatedSocieties);
         setDeleteSocieties(null);
+        setSelectedSociety(null);
       } catch (error) {
         console.log(error);
       }
@@ -263,8 +264,8 @@ export const Voter = () => {
           society => society.societyId !== leaveSocieties
         );
         setJoinedSocieties(updatedSocieties);
-
         await setStateBasedOnResponse(response);
+        setSelectedSociety(null);
       } catch (error) {
         console.log(error);
       }
@@ -362,7 +363,11 @@ export const Voter = () => {
                       description={society.description}
                     >
                       <Button
-                        onClick={() => createElectionHandler(society.societyId)}
+                        onClick={() => {
+                          setModalContext("createElection");
+                          createElectionHandler(society.societyId);
+                          setModal(!modal);
+                        }}
                         renderIcon={ResultNew}
                         kind={"tertiary"}
                       >
@@ -376,7 +381,11 @@ export const Voter = () => {
                         Edit
                       </Button>
                       <Button
-                        onClick={() => deleteSocietyHandler(society.societyId)}
+                        onClick={() => {
+                          setModalContext("deleteSociety");
+                          setSelectedSociety(society.societyId);
+                          setModal(!modal);
+                        }}
                         renderIcon={Delete}
                         kind={"danger"}
                       >
@@ -385,37 +394,61 @@ export const Voter = () => {
                     </Cards>
                   ))}
                 <ElectionModal modal={modal}>
-                  <form ref={electionForm} onSubmit={createElectionSubmit}>
-                    <h3>Create Election</h3>
-                    <TextInput
-                      id={"election_name"}
-                      labelText={"Election Name"}
-                      type={"text"}
-                      name={"name"}
-                      required={true}
-                    />
-                    <TextInput
-                      id={"description"}
-                      labelText={"Description"}
-                      type={"text"}
-                      name={"description"}
-                      required={true}
-                    />
-                    <Button
-                      onClick={() => toggleModal()}
-                      renderIcon={Close}
-                      kind={"danger"}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      renderIcon={PortInput}
-                      kind={"primary"}
-                      type={"submit"}
-                    >
-                      Create
-                    </Button>
-                  </form>
+                  {modalContext === "createElection" && (
+                    <form ref={electionForm} onSubmit={createElectionSubmit}>
+                      <h3>Create Election</h3>
+                      <TextInput
+                        id={"election_name"}
+                        labelText={"Election Name"}
+                        type={"text"}
+                        name={"name"}
+                        required={true}
+                      />
+                      <TextInput
+                        id={"description"}
+                        labelText={"Description"}
+                        type={"text"}
+                        name={"description"}
+                        required={true}
+                      />
+                      <Button
+                        onClick={() => toggleModal()}
+                        renderIcon={Close}
+                        kind={"danger"}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        renderIcon={PortInput}
+                        kind={"primary"}
+                        type={"submit"}
+                      >
+                        Create
+                      </Button>
+                    </form>
+                  )}
+                  {modalContext === "deleteSociety" && (
+                    <div>
+                      <p>
+                        Are you sure you want to delete this society? This
+                        action is irreversible. All candidates will be removed
+                        and all elections will be deleted.
+                      </p>
+                      <Button
+                        renderIcon={Close}
+                        onClick={() => setModal(!modal)}
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        renderIcon={PortInput}
+                        kind={"danger"}
+                        onClick={() => deleteSocietyHandler(selectedSociety!)}
+                      >
+                        Confirm
+                      </Button>
+                    </div>
+                  )}
                 </ElectionModal>
               </div>
             </>,
@@ -430,7 +463,10 @@ export const Voter = () => {
                       description={society.description}
                     >
                       <Button
-                        onClick={() => leaveSocietyHandler(society.societyId)}
+                        onClick={() => {
+                          setModal(!modal);
+                          setSelectedSociety(society.societyId);
+                        }}
                         renderIcon={Exit}
                         kind={"danger"}
                       >
@@ -438,6 +474,27 @@ export const Voter = () => {
                       </Button>
                     </Cards>
                   ))}
+                <ElectionModal modal={modal}>
+                  <div>
+                    <p>
+                      You are about to leave this society. You can join back at
+                      any time from the societies page.
+                    </p>
+                    <Button renderIcon={Close} onClick={() => setModal(!modal)}>
+                      Close
+                    </Button>
+                    <Button
+                      renderIcon={PortInput}
+                      kind={"danger"}
+                      onClick={() => {
+                        setModal(!modal);
+                        leaveSocietyHandler(selectedSociety!);
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                  </div>
+                </ElectionModal>
               </div>
             </>,
             <>

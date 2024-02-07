@@ -92,14 +92,14 @@ export const Nav = () => {
                     Home
                   </Button>
                   <SwitcherDivider />
-                  <Button
-                    className={styles.button}
-                    kind={"ghost"}
-                    renderIcon={Events}
-                    onClick={navigate.bind(null, Routes.SOCIETY())}
-                  >
-                    Societies
-                  </Button>
+                  {/*<Button*/}
+                  {/*  className={styles.button}*/}
+                  {/*  kind={"ghost"}*/}
+                  {/*  renderIcon={Events}*/}
+                  {/*  onClick={navigate.bind(null, Routes.SOCIETY())}*/}
+                  {/*>*/}
+                  {/*  Societies*/}
+                  {/*</Button>*/}
                   <Button
                     className={styles.button}
                     kind={"ghost"}

@@ -35,10 +35,13 @@ export const SignUp = () => {
     const responseMessage = (await response.json()).message;
     if (response.ok) {
       setSuccess(responseMessage);
+      console.log(success);
       setError(null);
+      navigate(Routes.AUTH_SIGN_IN());
     } else {
       setSuccess(null);
       setError(responseMessage);
+      console.log(error);
       setFormEnabled(true);
     }
   };
@@ -72,16 +75,18 @@ export const SignUp = () => {
             placeholder={Config.ORG.EMAIL_PLACEHOLDER}
             invalid={error !== null}
           />
-          <TextInput.PasswordInput
+          <TextInput
             id="sign-in__password1"
             labelText="Password"
+            type={"password"}
             name="password1"
             ref={passwords[0]}
             invalid={error !== null}
           />
-          <TextInput.PasswordInput
+          <TextInput
             id="sign-in__password2"
             labelText="Re-enter password"
+            type={"password"}
             name="password2"
             ref={passwords[1]}
             invalid={error !== null}

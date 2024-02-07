@@ -21,7 +21,7 @@ export const notSocietyExist = async (societyId: number): Promise<boolean> => {
     },
   });
 
-  return existingSociety !== null;
+  return existingSociety === null;
 };
 
 export const isInSociety = async (

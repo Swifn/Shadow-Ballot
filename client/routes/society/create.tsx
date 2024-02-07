@@ -80,6 +80,7 @@ export const Create = () => {
                 renderIcon={PortInput}
                 type="submit"
                 disabled={!formEnabled}
+                className={styles.button}
               >
                 Create Society
               </Button>

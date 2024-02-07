@@ -17,47 +17,43 @@ import { Society } from "./routes/society";
 import { Landing } from "./routes/landing";
 import { Create } from "./routes/society/create";
 import { Join } from "./routes/society/join";
-import { ErrorFallback, logError } from "./components/ErrorFallback";
-import { ErrorBoundary } from "react-error-boundary";
 
 function App() {
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback} onError={logError}>
-      <div className="App">
-        <RecoilRoot>
-          <Suspense fallback={"loading"}>
-            <BrowserRouter>
-              <Nav />
-              <Routes>
-                <Route path="/" element={<Auth />}>
-                  <Route path="/" element={<SignIn />} />
-                </Route>
-                <Route path={Index.ADMIN()} element={<Admin />} />
-                <Route path={Index.AUTH()} element={<Auth />}>
-                  <Route path={Index.AUTH_SIGN_UP()} element={<SignUp />} />
-                  <Route path={Index.AUTH_SIGN_IN()} element={<SignIn />} />
-                  <Route path={Index.AUTH()} element={<SignIn />} />
-                </Route>
-                <Route path={Index.VOTER()} element={<Voter />} />
-                <Route path={Index.ELECTION()} element={<Election />} />
-                <Route path={Index.VOTE()} element={<Vote />} />
-                <Route path={Index.SOCIETY()} element={<Society />}>
-                  <Route path={Index.SOCIETY_CREATE()} element={<Create />} />
-                  <Route path={Index.SOCIETY_JOIN()} element={<Join />} />
-                </Route>
-                <Route path={Index.LANDING()} element={<Landing />} />
-                <Route
-                  path={Index.PRIVACY_POLICY()}
-                  element={<PrivacyPolicy />}
-                />
-                <Route path={Index.NOT_FOUND()} element={<NotFound />} />
-                <Route path={"*"} element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </Suspense>
-        </RecoilRoot>
-      </div>
-    </ErrorBoundary>
+    <div className="App">
+      <RecoilRoot>
+        <Suspense fallback={"loading"}>
+          <BrowserRouter>
+            <Nav />
+            <Routes>
+              <Route path="/" element={<Auth />}>
+                <Route path="/" element={<SignIn />} />
+              </Route>
+              <Route path={Index.ADMIN()} element={<Admin />} />
+              <Route path={Index.AUTH()} element={<Auth />}>
+                <Route path={Index.AUTH_SIGN_UP()} element={<SignUp />} />
+                <Route path={Index.AUTH_SIGN_IN()} element={<SignIn />} />
+                <Route path={Index.AUTH()} element={<SignIn />} />
+              </Route>
+              <Route path={Index.VOTER()} element={<Voter />} />
+              <Route path={Index.ELECTION()} element={<Election />} />
+              <Route path={Index.VOTE()} element={<Vote />} />
+              <Route path={Index.SOCIETY()} element={<Society />}>
+                <Route path={Index.SOCIETY_CREATE()} element={<Create />} />
+                <Route path={Index.SOCIETY_JOIN()} element={<Join />} />
+              </Route>
+              <Route path={Index.LANDING()} element={<Landing />} />
+              <Route
+                path={Index.PRIVACY_POLICY()}
+                element={<PrivacyPolicy />}
+              />
+              <Route path={Index.NOT_FOUND()} element={<NotFound />} />
+              <Route path={"*"} element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </Suspense>
+      </RecoilRoot>
+    </div>
   );
 }
 

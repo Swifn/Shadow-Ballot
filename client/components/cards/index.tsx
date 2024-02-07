@@ -3,7 +3,7 @@ import styles from "./style.module.scss";
 interface props {
   name: string;
   alias?: string;
-  description: string;
+  description?: string;
   profilePicture?: string;
   children: React.ReactNode;
 }

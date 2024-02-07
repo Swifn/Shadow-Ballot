@@ -135,7 +135,6 @@ export const Vote = () => {
         ).then(res => res.json());
 
         setGetElectionCandidates(response.ElectionCandidates);
-        // setSelectedElection(null);
       } catch (error) {
         console.log(error);
       }
@@ -146,6 +145,7 @@ export const Vote = () => {
         res => res.json()
       );
       setGetResults(response);
+      console.log(response);
     } catch (error) {
       console.log(error);
     }
@@ -155,10 +155,8 @@ export const Vote = () => {
     (async () => {
       try {
         await fetchData();
-        // Additional logic after fetchData if necessary
       } catch (error) {
         console.error("An error occurred:", error);
-        // Handle any errors here
       }
     })();
   }, [voterId, selectedElection]);
@@ -169,9 +167,6 @@ export const Vote = () => {
   };
 
   const toggleModal = () => {
-    console.log(getElectionCandidates);
-    console.log(selectedElection);
-    console.log(selectedCandidate);
     setModal(!modal);
   };
 
@@ -221,36 +216,41 @@ export const Vote = () => {
                           ))}
                         <VoteModalCards modal={modal}>
                           <div className={styles.cardContainer}>
-                            {getElectionCandidates &&
-                              getElectionCandidates.map(elections => (
+                            {getResults &&
+                              getResults.map(results => (
                                 <Cards
-                                  name={elections.candidateName}
-                                  key={elections.candidateId}
-                                  description={elections.description}
-                                  alias={elections.candidateAlias}
+                                  name={results.candidateName}
+                                  key={results.candidateId}
+                                  description={results.description}
+                                  alias={results.candidateAlias}
                                 >
                                   <Button
                                     renderIcon={PortInput}
                                     onClick={() =>
-                                      voteHandler(elections.candidateId)
+                                      voteHandler(results.candidateId)
                                     }
                                   >
                                     Vote
                                   </Button>
+                                  <div className={styles.resultsContainer}>
+                                    <LiveVotes>
+                                      <p>Total Votes: {results?.totalVotes}</p>
+                                    </LiveVotes>
+                                  </div>
                                 </Cards>
                               ))}
                           </div>
-                          <h2>Live Votes</h2>
-                          <div className={styles.resultsContainer}>
-                            {getResults &&
-                              getResults.map(results => (
-                                <LiveVotes>
-                                  <h5>Name: {results.candidateName}</h5>
-                                  <h6>AKA: {results.candidateAlias}</h6>
-                                  <p>Total Votes: {results?.totalVotes}</p>
-                                </LiveVotes>
-                              ))}
-                          </div>
+                          {/*<h2>Live Votes</h2>*/}
+                          {/*<div className={styles.resultsContainer}>*/}
+                          {/*  {getResults &&*/}
+                          {/*    getResults.map(results => (*/}
+                          {/*      <LiveVotes>*/}
+                          {/*        <h5>Name: {results.candidateName}</h5>*/}
+                          {/*        <h6>AKA: {results.candidateAlias}</h6>*/}
+                          {/*        <p>Total Votes: {results?.totalVotes}</p>*/}
+                          {/*      </LiveVotes>*/}
+                          {/*    ))}*/}
+                          {/*</div>*/}
                           <Button
                             onClick={() => toggleModal()}
                             renderIcon={Close}
