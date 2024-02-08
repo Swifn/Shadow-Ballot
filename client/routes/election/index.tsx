@@ -118,36 +118,38 @@ export const Election = () => {
           tabContents={[
             <>
               <h1>All Elections</h1>
-              <div className={styles.cardContainer}>
-                {getAllElections &&
-                  getAllElections.map(elections => (
-                    <Cards
-                      name={elections.name}
-                      key={elections.electionId}
-                      description={elections.description}
-                    >
-                      <Button
-                        renderIcon={View}
-                        onClick={() =>
-                          viewCandidateHandler(elections.electionId)
-                        }
+              <div className={styles.container}>
+                <div className={styles.cardContainer}>
+                  {getAllElections &&
+                    getAllElections.map(elections => (
+                      <Cards
+                        name={elections.name}
+                        key={elections.electionId}
+                        description={elections.description}
                       >
-                        View Candidates
-                      </Button>
-                    </Cards>
-                  ))}
-                <ElectionModalCards
-                  modal={modal}
-                  cardContents={getElectionCandidates}
-                >
-                  <Button
-                    onClick={() => toggleModal()}
-                    renderIcon={Close}
-                    kind={"danger"}
+                        <Button
+                          renderIcon={View}
+                          onClick={() =>
+                            viewCandidateHandler(elections.electionId)
+                          }
+                        >
+                          View Candidates
+                        </Button>
+                      </Cards>
+                    ))}
+                  <ElectionModalCards
+                    modal={modal}
+                    cardContents={getElectionCandidates}
                   >
-                    Close
-                  </Button>
-                </ElectionModalCards>
+                    <Button
+                      onClick={() => toggleModal()}
+                      renderIcon={Close}
+                      kind={"danger"}
+                    >
+                      Close
+                    </Button>
+                  </ElectionModalCards>
+                </div>
               </div>
             </>,
             <>

@@ -4,8 +4,6 @@ import styles from "./style.module.scss";
 import React from "react";
 import { Button } from "@carbon/react";
 import { PortInput } from "@carbon/icons-react";
-import { Cards } from "../../components/cards";
-import { VoteModalCards } from "../../components/vote-modal";
 import { InfoCards } from "../../components/info-cards";
 import { useNavigate } from "react-router-dom";
 import { Routes } from "../index";
@@ -14,7 +12,7 @@ export const Landing = () => {
   const navigate = useNavigate();
 
   const navigateSocietyHandler = () => {
-    navigate(Routes.SOCIETY_CREATE());
+    navigate(Routes.SOCIETY());
   };
   const navigateElectionHandler = () => {
     navigate(Routes.ELECTION());

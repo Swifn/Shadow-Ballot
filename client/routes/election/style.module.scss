@@ -17,3 +17,10 @@ h1{
   max-height: 100vh;
   overflow-y: auto;
 }
+
+.container{
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    height: 100vh;
+}

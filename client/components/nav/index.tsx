@@ -92,29 +92,13 @@ export const Nav = () => {
                     Home
                   </Button>
                   <SwitcherDivider />
-                  {/*<Button*/}
-                  {/*  className={styles.button}*/}
-                  {/*  kind={"ghost"}*/}
-                  {/*  renderIcon={Events}*/}
-                  {/*  onClick={navigate.bind(null, Routes.SOCIETY())}*/}
-                  {/*>*/}
-                  {/*  Societies*/}
-                  {/*</Button>*/}
                   <Button
                     className={styles.button}
                     kind={"ghost"}
                     renderIcon={Events}
-                    onClick={navigate.bind(null, Routes.SOCIETY_JOIN())}
+                    onClick={navigate.bind(null, Routes.SOCIETY())}
                   >
-                    Join a society
-                  </Button>
-                  <Button
-                    className={styles.button}
-                    kind={"ghost"}
-                    renderIcon={Events}
-                    onClick={navigate.bind(null, Routes.SOCIETY_CREATE())}
-                  >
-                    Create a society
+                    Societies
                   </Button>
                   <SwitcherDivider />
                   <Button

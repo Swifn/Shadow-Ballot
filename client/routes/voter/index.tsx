@@ -13,7 +13,6 @@ import {
   Close,
   Locked,
   Unlocked,
-  Exit,
   UserFollow,
 } from "@carbon/icons-react";
 import { ElectionModal } from "../../components/election-modal";
@@ -35,10 +34,8 @@ interface Election {
 export const Voter = () => {
   //const navigate = useNavigate();
   const [ownedSocieties, setOwnedSocieties] = useState<Society[] | null>([]);
-  const [joinedSocieties, setJoinedSocieties] = useState<Society[] | null>([]);
   const [deleteSocieties, setDeleteSocieties] = useState<number | null>(null);
   const [editSocieties, setEditSocieties] = useState<number | null>(null);
-  const [leaveSocieties, setLeaveSocieties] = useState<number | null>(null);
   const [ownedElections, setOwnedElections] = useState<Election[] | null>([]);
   const [createElectionForSociety, setCreateElectionForSociety] = useState<
     number | null
@@ -106,9 +103,6 @@ export const Voter = () => {
     setModal(!modal);
     setSelectedElection(electionId);
     setSelectedSociety(societyId);
-  };
-  const leaveSocietyHandler = async (societyId: number) => {
-    setLeaveSocieties(societyId);
   };
   const deleteSocietyHandler = async (societyId: number) => {
     setDeleteSocieties(societyId);
@@ -253,50 +247,7 @@ export const Voter = () => {
     })();
   }, [deleteSocieties, ownedSocieties]);
 
-  const leaveSociety = async () => {
-    if (leaveSocieties !== null) {
-      try {
-        const response = await post(
-          `society/leave/${leaveSocieties}/${voterId}`
-        );
-        await setStateBasedOnResponse(response);
-        const updatedSocieties = joinedSocieties!.filter(
-          society => society.societyId !== leaveSocieties
-        );
-        setJoinedSocieties(updatedSocieties);
-        await setStateBasedOnResponse(response);
-        setSelectedSociety(null);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    setLeaveSocieties(null);
-  };
-
-  useEffect(() => {
-    (async () => {
-      try {
-        await leaveSociety();
-      } catch (error) {
-        console.error(error);
-      }
-    })();
-  }, [leaveSocieties, voterId, joinedSocieties]);
-
   const fetchData = async () => {
-    try {
-      const response = await get(`society/get-joined/${voterId}`).then(res =>
-        res.json()
-      );
-      setJoinedSocieties(response.societies);
-      const sortedSocieties = response.societies.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      setJoinedSocieties(sortedSocieties);
-    } catch (error) {
-      console.log(`Error when retrieving owned society data: ${error}`);
-    }
-
     try {
       const response = await get(`society/get-owned/${voterId}`).then(res =>
         res.json()
@@ -343,9 +294,6 @@ export const Voter = () => {
           tabListNames={[
             {
               name: "Owned",
-            },
-            {
-              name: "Joined",
             },
             {
               name: "Election",
@@ -449,51 +397,6 @@ export const Voter = () => {
                       </Button>
                     </div>
                   )}
-                </ElectionModal>
-              </div>
-            </>,
-            <>
-              <div className={styles.cardContainer}>
-                <h1>Joined Societies</h1>
-                {joinedSocieties &&
-                  joinedSocieties.map(society => (
-                    <Cards
-                      name={society.name}
-                      key={society.societyId}
-                      description={society.description}
-                    >
-                      <Button
-                        onClick={() => {
-                          setModal(!modal);
-                          setSelectedSociety(society.societyId);
-                        }}
-                        renderIcon={Exit}
-                        kind={"danger"}
-                      >
-                        Leave
-                      </Button>
-                    </Cards>
-                  ))}
-                <ElectionModal modal={modal}>
-                  <div>
-                    <p>
-                      You are about to leave this society. You can join back at
-                      any time from the societies page.
-                    </p>
-                    <Button renderIcon={Close} onClick={() => setModal(!modal)}>
-                      Close
-                    </Button>
-                    <Button
-                      renderIcon={PortInput}
-                      kind={"danger"}
-                      onClick={() => {
-                        setModal(!modal);
-                        leaveSocietyHandler(selectedSociety!);
-                      }}
-                    >
-                      Confirm
-                    </Button>
-                  </div>
                 </ElectionModal>
               </div>
             </>,

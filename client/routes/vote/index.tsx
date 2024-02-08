@@ -240,17 +240,6 @@ export const Vote = () => {
                                 </Cards>
                               ))}
                           </div>
-                          {/*<h2>Live Votes</h2>*/}
-                          {/*<div className={styles.resultsContainer}>*/}
-                          {/*  {getResults &&*/}
-                          {/*    getResults.map(results => (*/}
-                          {/*      <LiveVotes>*/}
-                          {/*        <h5>Name: {results.candidateName}</h5>*/}
-                          {/*        <h6>AKA: {results.candidateAlias}</h6>*/}
-                          {/*        <p>Total Votes: {results?.totalVotes}</p>*/}
-                          {/*      </LiveVotes>*/}
-                          {/*    ))}*/}
-                          {/*</div>*/}
                           <Button
                             onClick={() => toggleModal()}
                             renderIcon={Close}

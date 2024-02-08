@@ -9,7 +9,5 @@ export const Routes = {
   VOTE: () => `/vote`,
   PRIVACY_POLICY: () => `/privacy-policy`,
   SOCIETY: () => `/society`,
-  SOCIETY_CREATE: () => `${Routes.SOCIETY()}/create`,
-  SOCIETY_JOIN: () => `${Routes.SOCIETY()}/join`,
   LANDING: () => `/landing`,
 };

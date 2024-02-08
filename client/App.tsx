@@ -15,8 +15,6 @@ import { Vote } from "./routes/vote";
 import { PrivacyPolicy } from "./routes/privacy-policy";
 import { Society } from "./routes/society";
 import { Landing } from "./routes/landing";
-import { Create } from "./routes/society/create";
-import { Join } from "./routes/society/join";
 
 function App() {
   return (
@@ -38,10 +36,7 @@ function App() {
               <Route path={Index.VOTER()} element={<Voter />} />
               <Route path={Index.ELECTION()} element={<Election />} />
               <Route path={Index.VOTE()} element={<Vote />} />
-              <Route path={Index.SOCIETY()} element={<Society />}>
-                <Route path={Index.SOCIETY_CREATE()} element={<Create />} />
-                <Route path={Index.SOCIETY_JOIN()} element={<Join />} />
-              </Route>
+              <Route path={Index.SOCIETY()} element={<Society />} />
               <Route path={Index.LANDING()} element={<Landing />} />
               <Route
                 path={Index.PRIVACY_POLICY()}
