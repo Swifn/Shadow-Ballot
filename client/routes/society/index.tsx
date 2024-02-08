@@ -264,6 +264,7 @@ export const Society = () => {
                   value={joinSearch}
                   onChange={searchJoinHandler}
                   className={styles.search}
+                  placeholder={"Search to join society"}
                 />
                 <div className={styles.join}>
                   <div className={styles.cardContainer}>
@@ -297,6 +298,7 @@ export const Society = () => {
                   value={leaveSearch}
                   onChange={searchLeaveHandler}
                   className={styles.search}
+                  placeholder={"Search to leave society"}
                 />
                 <div className={styles.leave}>
                   <div className={styles.cardContainer}>
