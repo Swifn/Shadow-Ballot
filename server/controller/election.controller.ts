@@ -139,61 +139,61 @@ export const getElectionWithCandidates = async (
   }
 };
 
-export const getElectionResults = async (req: Request, res: Response) => {
-  const electionId = req.params.electionId;
-  try {
-    //Fetch all candidates for the election
-    const candidates = await ElectionCandidates.findAll({
-      where: { electionId: electionId },
-      attributes: [
-        "candidateId",
-        "candidateName",
-        "candidateAlias",
-        "description",
-      ],
-    });
-
-    // Fetch vote counts for candidates
-    const votes = await Vote.findAll({
-      where: { electionId },
-      order: [["createdAt", "ASC"]], // Sort the votes in ascending order
-      attributes: ["candidateId"],
-    });
-
-    // Create a map to count votes for each candidate
-    const voteCounts = {};
-    votes.forEach(vote => {
-      voteCounts[vote.candidateId] = (voteCounts[vote.candidateId] || 0) + 1;
-    });
-
-    let totalElectionVotes = votes.length;
-
-    // Exclude the latest vote if totalElectionVotes is odd
-    if (totalElectionVotes % 2 !== 0) {
-      const latestVote = votes[votes.length - 1]; // Get the latest vote
-      voteCounts[latestVote.candidateId] -= 1; // Remove the latest vote from the count
-      totalElectionVotes -= 1; // adjust the totalElectionVotes
-      console.log(`Total votes: ${totalElectionVotes}`);
-    }
-
-    //Merge the results so that all candidates are included even if they have no votes to their name
-    const results = candidates.map(candidate => {
-      return {
-        candidateId: candidate.candidateId,
-        candidateName: candidate.candidateName,
-        candidateAlias: candidate.candidateAlias,
-        description: candidate.description,
-        totalVotes: voteCounts[candidate.candidateId] || 0, // Assign 0 if no votes found
-      };
-    });
-    return res.status(HTTP.STATUS_OK).send(results);
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: "Unable to fetch election results" });
-  }
-};
+// export const getElectionResults = async (req: Request, res: Response) => {
+//   const electionId = req.params.electionId;
+//   try {
+//     //Fetch all candidates for the election
+//     const candidates = await ElectionCandidates.findAll({
+//       where: { electionId: electionId },
+//       attributes: [
+//         "candidateId",
+//         "candidateName",
+//         "candidateAlias",
+//         "description",
+//       ],
+//     });
+//
+//     // Fetch vote counts for candidates
+//     const votes = await Vote.findAll({
+//       where: { electionId },
+//       order: [["createdAt", "ASC"]], // Sort the votes in ascending order
+//       attributes: ["candidateId"],
+//     });
+//
+//     // Create a map to count votes for each candidate
+//     const voteCounts = {};
+//     votes.forEach(vote => {
+//       voteCounts[vote.candidateId] = (voteCounts[vote.candidateId] || 0) + 1;
+//     });
+//
+//     let totalElectionVotes = votes.length;
+//
+//     // Exclude the latest vote if totalElectionVotes is odd
+//     if (totalElectionVotes % 2 !== 0) {
+//       const latestVote = votes[votes.length - 1]; // Get the latest vote
+//       voteCounts[latestVote.candidateId] -= 1; // Remove the latest vote from the count
+//       totalElectionVotes -= 1; // adjust the totalElectionVotes
+//       console.log(`Total votes: ${totalElectionVotes}`);
+//     }
+//
+//     //Merge the results so that all candidates are included even if they have no votes to their name
+//     const results = candidates.map(candidate => {
+//       return {
+//         candidateId: candidate.candidateId,
+//         candidateName: candidate.candidateName,
+//         candidateAlias: candidate.candidateAlias,
+//         description: candidate.description,
+//         totalVotes: voteCounts[candidate.candidateId] || 0, // Assign 0 if no votes found
+//       };
+//     });
+//     return res.status(HTTP.STATUS_OK).send(results);
+//   } catch (error) {
+//     console.log(error);
+//     return res
+//       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+//       .send({ message: "Unable to fetch election results" });
+//   }
+// };
 
 //TODO: Add a feature where the election can only be opened once to stop changes?
 export const openElection = async (req: Request, res: Response) => {

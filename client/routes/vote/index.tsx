@@ -131,7 +131,7 @@ export const Vote = () => {
     if (selectedElection != null) {
       try {
         const response = await get(
-          `election/getElectionCandidates/${selectedElection}`
+          `vote/getElectionCandidates/${selectedElection}`
         ).then(res => res.json());
 
         setGetElectionCandidates(response.ElectionCandidates);
@@ -141,8 +141,8 @@ export const Vote = () => {
     }
 
     try {
-      const response = await get(`election/results/${selectedElection}`).then(
-        res => res.json()
+      const response = await get(`vote/results/${selectedElection}`).then(res =>
+        res.json()
       );
       setGetResults(response);
       console.log(response);

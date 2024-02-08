@@ -3,7 +3,6 @@ import { Router } from "express";
 import {
   createElection,
   getElectionWithCandidates,
-  getElectionResults,
   addCandidate,
   openElection,
   closeElection,
@@ -25,4 +24,3 @@ electionRouter.get("/get-society-elections/:voterId", getSocietyElections);
 electionRouter.get("/get-owned/:voterId", getOwnedElections);
 electionRouter.patch("/:electionId/election-status/open", openElection);
 electionRouter.patch("/:electionId/election-status/close", closeElection);
-electionRouter.get("/results/:electionId", getElectionResults);
