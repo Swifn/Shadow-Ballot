@@ -1,12 +1,6 @@
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import styles from "../society/style.module.scss";
-import {
-  Button,
-  InlineNotification,
-  Search,
-  Stack,
-  TextInput,
-} from "@carbon/react";
+import { Button, InlineNotification, Search, TextInput } from "@carbon/react";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Add, PortInput, Close, Exit } from "@carbon/icons-react";
@@ -77,18 +71,18 @@ export const Society = () => {
   }, [leaveSearch, getAllResult]);
 
   useEffect(() => {
-    const filterJoinSocieties = () => {
-      if (joinSearch) {
-        const filtered = joinedSocieties!.filter(society =>
-          society.name.toLowerCase().includes(joinSearch.toLowerCase())
-        );
-        setFilteredJoinSocieties(filtered);
-      } else {
-        setFilteredJoinSocieties(joinedSocieties!);
-      }
-    };
-    filterJoinSocieties();
-  }, [joinSearch, getAllResult]);
+    if (!getAllResult || !joinedSocieties) return;
+    const notJoinedSocieties = getAllResult.filter(
+      allSociety =>
+        !joinedSocieties.some(
+          joinedSociety => joinedSociety.societyId === allSociety.societyId
+        )
+    );
+    const filteredSocieties = notJoinedSocieties.filter(society =>
+      society.name.toLowerCase().includes(joinSearch.toLowerCase())
+    );
+    setFilteredJoinSocieties(filteredSocieties);
+  }, [joinSearch, getAllResult, joinedSocieties]);
 
   const joinSociety = async () => {
     if (selectedJoinSociety != null) {
@@ -102,18 +96,12 @@ export const Society = () => {
         const body = Object.fromEntries(formData.entries());
         const response = await post(`society/join`, body);
 
-        const responseMessage = (await response.json()).message;
-
-        if (response.ok) {
-          setSuccess(responseMessage);
-          setError(null);
-        } else {
-          setSuccess(null);
-          setError(responseMessage);
-        }
+        await setStateBasedOnResponse(response);
         setSelectedJoinSociety(null);
       } catch (error) {
         console.log(error);
+      } finally {
+        await fetchData();
       }
     }
   };
@@ -128,11 +116,12 @@ export const Society = () => {
         const updatedSocieties = joinedSocieties!.filter(
           society => society.societyId !== leaveSocieties
         );
-        setJoinedSocieties(updatedSocieties);
-        await setStateBasedOnResponse(response);
+        setFilteredLeaveSocieties(updatedSocieties);
         setSelectedLeaveSociety(null);
       } catch (error) {
         console.log(error);
+      } finally {
+        await fetchData();
       }
     }
     setLeaveSocieties(null);
@@ -231,101 +220,95 @@ export const Society = () => {
       <div className={styles.container}>
         <main>
           <div>
-            <Stack>
-              <div className={styles.notification}>
-                {success && (
-                  <InlineNotification title={success} kind="success" />
-                )}
-                {error && <InlineNotification title={error} />}
+            <div className={styles.notification}>
+              {success && <InlineNotification title={success} kind="success" />}
+              {error && <InlineNotification title={error} />}
+            </div>
+            <div className={styles.content}>
+              <div className={styles.header}>
+                <h1>Societies</h1>
               </div>
-              <div className={styles.content}>
-                <div className={styles.header}>
-                  <h1>Societies</h1>
-                </div>
-                <div className={styles.create}>
-                  <Button
-                    kind={"ghost"}
-                    size={"md"}
-                    className={styles.button}
-                    renderIcon={Add}
-                    onClick={() => {
-                      toggleModal();
-                      setModalContext("createSociety");
-                    }}
-                  >
-                    Create
-                  </Button>
-                </div>
-                <div className={styles.header}>
-                  <h2>Join a society</h2>
-                </div>
-                <Search
-                  labelText={"Search to join society"}
-                  value={joinSearch}
-                  onChange={searchJoinHandler}
-                  className={styles.search}
-                  placeholder={"Search to join society"}
-                />
-                <div className={styles.join}>
-                  <div className={styles.cardContainer}>
-                    {filteredJoinSocieties &&
-                      filteredJoinSocieties.map(society => (
-                        <Cards
-                          name={society.name}
-                          key={society.societyId}
-                          description={society.description}
+              <div className={styles.create}>
+                <Button
+                  kind={"ghost"}
+                  size={"md"}
+                  className={styles.button}
+                  renderIcon={Add}
+                  onClick={() => {
+                    toggleModal();
+                    setModalContext("createSociety");
+                  }}
+                >
+                  Create
+                </Button>
+              </div>
+              <div className={styles.header}>
+                <h2>Join a society</h2>
+              </div>
+              <Search
+                labelText={"Search to join society"}
+                value={joinSearch}
+                onChange={searchJoinHandler}
+                className={styles.search}
+                placeholder={"Search to join society"}
+              />
+              <div className={styles.join}>
+                <div className={styles.cardContainer}>
+                  {filteredJoinSocieties &&
+                    filteredJoinSocieties.map(society => (
+                      <Cards
+                        name={society.name}
+                        key={society.societyId}
+                        description={society.description}
+                      >
+                        <Button
+                          onClick={() => joinSocietyHandler(society.societyId)}
+                          renderIcon={PortInput}
                         >
-                          <Button
-                            onClick={() =>
-                              joinSocietyHandler(society.societyId)
-                            }
-                            renderIcon={PortInput}
-                          >
-                            Join
-                          </Button>
-                        </Cards>
-                      ))}
-                  </div>
+                          Join
+                        </Button>
+                      </Cards>
+                    ))}
                 </div>
               </div>
+            </div>
 
-              <div className={styles.content}>
-                <div className={styles.header}>
-                  <h2>Leave a society</h2>
-                </div>
-                <Search
-                  labelText={"Search to leave society"}
-                  value={leaveSearch}
-                  onChange={searchLeaveHandler}
-                  className={styles.search}
-                  placeholder={"Search to leave society"}
-                />
-                <div className={styles.leave}>
-                  <div className={styles.cardContainer}>
-                    {filteredLeaveSocieties &&
-                      filteredLeaveSocieties.map(society => (
-                        <Cards
-                          name={society.name}
-                          key={society.societyId}
-                          description={society.description}
+            <div className={styles.content}>
+              <div className={styles.header}>
+                <h2>Leave a society</h2>
+              </div>
+              <Search
+                labelText={"Search to leave society"}
+                value={leaveSearch}
+                onChange={searchLeaveHandler}
+                className={styles.search}
+                placeholder={"Search to leave society"}
+              />
+              <div className={styles.leave}>
+                <div className={styles.cardContainer}>
+                  {filteredLeaveSocieties &&
+                    filteredLeaveSocieties.map(society => (
+                      <Cards
+                        name={society.name}
+                        key={society.societyId}
+                        description={society.description}
+                      >
+                        <Button
+                          onClick={() => {
+                            setModal(!modal);
+                            setModalContext("leaveSociety");
+                            setSelectedLeaveSociety(society.societyId);
+                          }}
+                          renderIcon={Exit}
+                          kind={"danger"}
                         >
-                          <Button
-                            onClick={() => {
-                              setModal(!modal);
-                              setModalContext("leaveSociety");
-                              setSelectedLeaveSociety(society.societyId);
-                            }}
-                            renderIcon={Exit}
-                            kind={"danger"}
-                          >
-                            Leave
-                          </Button>
-                        </Cards>
-                      ))}
-                  </div>
+                          Leave
+                        </Button>
+                      </Cards>
+                    ))}
                 </div>
               </div>
-            </Stack>
+            </div>
           </div>
           <ElectionModal modal={modal}>
             {modalContext === "leaveSociety" && (
