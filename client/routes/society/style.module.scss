@@ -89,20 +89,26 @@
 .join{
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   border-radius: 8px;
-  margin: 50px;
+  margin: 25px;
   padding: 50px;
   overflow: auto;
+  width: 85vw;
+  height: 85vh;
+}
 
+.search{
+  margin-top: 50px;
 }
 
 .leave{
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   background-color: rgb(255, 255, 255, 0.1);
   border-radius: 8px;
-  margin: 50px;
+  margin: 25px;
   padding: 50px;
   overflow: auto;
-
+  width: 85vw;
+  height: 85vh;
 }
 
 .leave h1{

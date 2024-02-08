@@ -1,6 +1,12 @@
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import styles from "../society/style.module.scss";
-import { Button, InlineNotification, Stack, TextInput } from "@carbon/react";
+import {
+  Button,
+  InlineNotification,
+  Search,
+  Stack,
+  TextInput,
+} from "@carbon/react";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Add, PortInput, Close, Exit } from "@carbon/icons-react";
@@ -31,6 +37,14 @@ export const Society = () => {
   const [getAllResult, setGetAllResult] = useState<Society[] | null>([]);
   const [joinedSocieties, setJoinedSocieties] = useState<Society[] | null>([]);
   const [leaveSocieties, setLeaveSocieties] = useState<number | null>(null);
+  const [joinSearch, setJoinSearch] = useState("");
+  const [leaveSearch, setLeaveSearch] = useState("");
+  const [filteredLeaveSocieties, setFilteredLeaveSocieties] = useState<
+    Society[]
+  >([]);
+  const [filteredJoinSocieties, setFilteredJoinSocieties] = useState<Society[]>(
+    []
+  );
   const voterId = localStorage.getItem("USER_ID");
 
   const joinSocietyHandler = async (societyId: number) => {
@@ -40,6 +54,41 @@ export const Society = () => {
   const leaveSocietyHandler = async (societyId: number) => {
     setLeaveSocieties(societyId);
   };
+
+  const searchLeaveHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLeaveSearch(event.target.value);
+  };
+  const searchJoinHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setJoinSearch(event.target.value);
+  };
+
+  useEffect(() => {
+    const filterLeaveSocieties = () => {
+      if (leaveSearch) {
+        const filtered = joinedSocieties!.filter(society =>
+          society.name.toLowerCase().includes(leaveSearch.toLowerCase())
+        );
+        setFilteredLeaveSocieties(filtered);
+      } else {
+        setFilteredLeaveSocieties(joinedSocieties!);
+      }
+    };
+    filterLeaveSocieties();
+  }, [leaveSearch, getAllResult]);
+
+  useEffect(() => {
+    const filterJoinSocieties = () => {
+      if (joinSearch) {
+        const filtered = joinedSocieties!.filter(society =>
+          society.name.toLowerCase().includes(joinSearch.toLowerCase())
+        );
+        setFilteredJoinSocieties(filtered);
+      } else {
+        setFilteredJoinSocieties(joinedSocieties!);
+      }
+    };
+    filterJoinSocieties();
+  }, [joinSearch, getAllResult]);
 
   const joinSociety = async () => {
     if (selectedJoinSociety != null) {
@@ -210,10 +259,16 @@ export const Society = () => {
                 <div className={styles.header}>
                   <h2>Join a society</h2>
                 </div>
+                <Search
+                  labelText={"Search to join society"}
+                  value={joinSearch}
+                  onChange={searchJoinHandler}
+                  className={styles.search}
+                />
                 <div className={styles.join}>
                   <div className={styles.cardContainer}>
-                    {getAllResult &&
-                      getAllResult.map(society => (
+                    {filteredJoinSocieties &&
+                      filteredJoinSocieties.map(society => (
                         <Cards
                           name={society.name}
                           key={society.societyId}
@@ -237,10 +292,16 @@ export const Society = () => {
                 <div className={styles.header}>
                   <h2>Leave a society</h2>
                 </div>
+                <Search
+                  labelText={"Search to leave society"}
+                  value={leaveSearch}
+                  onChange={searchLeaveHandler}
+                  className={styles.search}
+                />
                 <div className={styles.leave}>
                   <div className={styles.cardContainer}>
-                    {joinedSocieties &&
-                      joinedSocieties.map(society => (
+                    {filteredLeaveSocieties &&
+                      filteredLeaveSocieties.map(society => (
                         <Cards
                           name={society.name}
                           key={society.societyId}
