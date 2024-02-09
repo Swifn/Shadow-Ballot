@@ -49,10 +49,10 @@ export const Society = () => {
     setLeaveSocieties(societyId);
   };
 
-  const searchLeaveHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const searchLeaveHandler = event => {
     setLeaveSearch(event.target.value);
   };
-  const searchJoinHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const searchJoinHandler = event => {
     setJoinSearch(event.target.value);
   };
 
@@ -157,14 +157,9 @@ export const Society = () => {
     setFormEnabled(false);
 
     const formData = new FormData(form.current ?? undefined);
-
-    const voterId = localStorage.getItem("USER_ID");
-    if (voterId) {
-      formData.append("voterId", voterId);
-    }
+    formData.append("voterId", voterId!);
 
     const body = Object.fromEntries(formData.entries());
-
     const response = await post("society/create", body);
     await setStateBasedOnResponse(response);
     setFormEnabled(true);
