@@ -15,6 +15,6 @@ export const AnonymousRoute = ({ children }: { children: JSX.Element }) => {
 
 export const AdminRoute = ({ children }: { children: JSX.Element }) => {
   const voter = useRecoilValue(userState);
-  if (!voter) return <Navigate to={Routes.AUTH_SIGN_IN()} replace />;
+  if (!voter) return <Navigate to={Routes.LANDING()} replace />;
   return voter.admin ? children : <Navigate to={Routes.LANDING()} replace />;
 };

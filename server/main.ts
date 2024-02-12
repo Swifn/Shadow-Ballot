@@ -7,8 +7,9 @@ import { electionRouter } from "./routes/election.route.js";
 import { societyRouter } from "./routes/society.route.js";
 import { voterRouter } from "./routes/voter.route.js";
 import { voteRouter } from "./routes/vote.route.js";
-import cors from "cors";
 import { sequelize } from "./models/index.js";
+import cors from "cors";
+import { seed } from "./seeders/index.js";
 
 const app = express();
 app.use(fileUpload());
@@ -24,5 +25,6 @@ app.use("/vote", voteRouter);
 
 const server = app.listen(Config.PORT, async () => {
   await sequelize.sync();
+  await seed();
   console.log(`App running in port ${Config.PORT}`);
 });

@@ -27,8 +27,8 @@ const req = async (method: string, url: string, body?: any, file?: any) => {
   if (file) {
     body = new FormData();
     body.append("file", file);
+    console.log(file);
   }
-
   console.log(`METHOD: ${method}\nURL: ${url}\nBODY: ${body}`);
 
   return await fetch(`http://localhost:8000/${url}`, {

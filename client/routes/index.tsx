@@ -9,5 +9,6 @@ export const Routes = {
   VOTE: () => `/vote`,
   PRIVACY_POLICY: () => `/privacy-policy`,
   SOCIETY: () => `/society`,
+  SOCIETY_PAGE: (sid?: string) => `/society/${sid ?? ":sid"}`,
   LANDING: () => `/landing`,
 };

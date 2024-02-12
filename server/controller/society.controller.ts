@@ -9,10 +9,11 @@ import {
 } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import { v4 as uuid } from "uuid";
+import { FileRequest } from "../middleware/jwt.middleware.js";
 
 export const createSociety = async (req: Request, res: Response) => {
   try {
-    const { societyId, voterId, name, description } = req.body;
+    const { societyId, voterId, name, description, subject } = req.body;
 
     if (!name || !description) {
       return res
@@ -31,6 +32,7 @@ export const createSociety = async (req: Request, res: Response) => {
       societyOwnerId: voterId,
       name: name,
       description: description,
+      subjectId: subject,
       societyPicture: req?.societyPicture,
     });
 
@@ -206,76 +208,102 @@ export const getJoinedSocieties = async (req: Request, res: Response) => {
   }
 };
 
-export const getSocietyById = async (req: Request, res: Response) => {};
-export const getSocietyPicture = async (req, res) => {
-  // const societyId = parseInt(req.params.uid, 10);
-  // if (!societyId) {
-  //   return res.status(HTTP.STATUS_BAD_REQUEST).send();
-  // }
-  //
-  // const society = await Society.findByPk(societyId);
-  // if (!society) {
-  //   return res.status(HTTP.STATUS_NOT_FOUND).send();
-  // }
-  // const societyPicture = await society.getSocietyPicture();
-  // let path;
-  // if (societyPicture) {
-  //   path = societyPicture.path;
-  // } else {
-  //   path = "assets/default/society_picture.png";
-  // }
-  // res.status(200).sendFile(path, {
-  //   root: process.cwd(),
-  //   headers: { "Content-Disposition": "inline", "Content-Type": "image/png" },
-  // });
+export const getSocietyById = async (req: Request, res: Response) => {
+  const id = req.params.societyId;
+  try {
+    const society = await Society.findOne({
+      where: {
+        societyId: id,
+      },
+      attributes: {
+        exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+      },
+    });
+    return res.status(HTTP.STATUS_OK).send({ society });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get society" });
+  }
 };
 
-// TOOD: Change the front end so that the file upload for pictures is done from an edit society page rather than the
-// creation of the society-get the societyId as a param.
-export const uploadSocietyPicture = async (req: Request, res: Response) => {
-  // to be sent from frontend: file, societyId
-  if (!req?.file) {
-    return res
-      .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "No file is being uploaded" });
-  }
-
-  const society = await Society.findByPk(req.societyId);
-  if (!society) {
-    return res
-      .status(HTTP.STATUS_NOT_FOUND)
-      .send({ message: "No society found" });
-  }
-
-  const path = `assets/uploaded/${uuid()}`;
-
-  // TODO: test
-  const file = await FileStorage.create({
-    fileId: 0,
-    name: "societyPicture",
-    path: path,
-  });
-  if (!file) {
-    return res
-      .status(HTTP.STATUS_NOT_FOUND)
-      .send({ message: "File not found" });
-  }
-
-  await Society.update(
-    { societyPicture: file.fileId },
-    {
-      where: {
-        societyId: req.societyId,
-      },
+export const getSocietyPicture = async (req: Request, res: Response) => {
+  const societyId = req.params.societyId;
+  try {
+    const society = await Society.findByPk(societyId);
+    if (!society) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "This society does not exist" });
     }
-  );
 
-  // const picture = await society.getSocietyPicture();
-  // if (picture) {
-  //   picture.destroy();
-  // }
+    const societyPicture = await society.getSocietyPicture();
+    let path;
+    if (societyPicture) {
+      path = societyPicture.path;
+      console.log(path);
+    } else {
+      path = "client/assets/bg.jpg";
+    }
 
-  return res
-    .status(HTTP.STATUS_OK)
-    .send({ message: "File has been uploaded", path: path });
+    return res.status(HTTP.STATUS_OK).send({ societyPicture: path });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get society picture" });
+  }
+};
+
+export const uploadSocietyPicture = async (req: FileRequest, res: Response) => {
+  const societyId = req.params.societyId;
+  console.log(` Society ID is: ${societyId}`);
+
+  try {
+    if (!req.files?.file) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "Please upload a file" });
+    }
+
+    const society = await Society.findOne({
+      where: {
+        societyId: societyId,
+      },
+    });
+    if (!society) {
+      return res
+        .status(HTTP.STATUS_NOT_FOUND)
+        .send({ message: "This society does not exist" });
+    }
+
+    const societyPicture = await society.getSocietyPicture();
+    if (societyPicture) {
+      societyPicture.destroy();
+    }
+
+    const originalName = req.files.file.name;
+    const originalExtension = originalName.substring(
+      originalName.lastIndexOf(".")
+    );
+
+    const path = `client/assets/uploaded/${uuid()}${originalExtension}`;
+    await req.files.file.mv(path);
+
+    const fileToStore = {
+      name: "society_picture",
+      path: path,
+    };
+    await society.createSocietyPicture(fileToStore as any);
+
+    return res
+      .status(HTTP.STATUS_OK)
+      .send({ message: "Society picture uploaded" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to upload society picture" });
+  }
 };

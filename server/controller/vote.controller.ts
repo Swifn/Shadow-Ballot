@@ -154,7 +154,6 @@ export const getElectionResults = async (req: Request, res: Response) => {
       const latestVote = votes[votes.length - 1]; // Get the latest vote
       voteCounts[latestVote.candidateId] -= 1; // Remove the latest vote from the count
       totalElectionVotes -= 1; // adjust the totalElectionVotes
-      console.log(`Total votes: ${totalElectionVotes}`);
     }
 
     //Merge the results so that all candidates are included even if they have no votes to their name

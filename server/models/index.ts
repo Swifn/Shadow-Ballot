@@ -8,6 +8,7 @@ import { init as initSociety } from "./society.model.js";
 import { init as initVote } from "./vote.model.js";
 import { init as initVoterSociety } from "./voter-society.model.js";
 import { init as initFileStorage } from "./file-storage.model.js";
+import { init as initSocietySubject } from "./society-subjects.model.js";
 
 let db: Sequelize;
 
@@ -40,6 +41,7 @@ export const ElectionCandidates = initElectionCandidates(sequelize);
 export const Society = initSociety(sequelize);
 export const VoterSociety = initVoterSociety(sequelize);
 export const FileStorage = initFileStorage(sequelize);
+export const SocietySubject = initSocietySubject(sequelize);
 
 export const Vote = initVote(sequelize);
 //tested
@@ -49,13 +51,20 @@ Voter.hasMany(Vote, { foreignKey: "voterId" });
 Vote.belongsTo(Voter, { foreignKey: "voterId" });
 Society.hasMany(VoterSociety, { foreignKey: "societyId" });
 VoterSociety.belongsTo(Society, { foreignKey: "societyId" });
+SocietySubject.hasMany(Society, { foreignKey: "subjectId" });
+Society.belongsTo(SocietySubject, { foreignKey: "subjectId" });
 
+Society.belongsTo(FileStorage, {
+  as: "SocietyPicture",
+  foreignKey: "societyPicture",
+});
 FileStorage.hasOne(Society, {
+  as: "SocietyPicture",
   foreignKey: "societyPicture",
   onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
-Society.belongsTo(FileStorage, { foreignKey: "societyPicture" });
+
 FileStorage.hasOne(Election, {
   foreignKey: "electionPicture",
   onDelete: "SET NULL",
