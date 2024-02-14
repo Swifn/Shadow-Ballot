@@ -29,7 +29,6 @@ export const init = sequelize =>
       },
       path: {
         type: DataTypes.TEXT,
-        allowNull: false,
         unique: true,
       },
     },
