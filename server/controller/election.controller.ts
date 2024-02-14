@@ -3,7 +3,6 @@ import {
   Election,
   ElectionCandidates,
   Society,
-  Vote,
   VoterSociety,
 } from "../models/index.js";
 
@@ -22,7 +21,7 @@ import { Config } from "../configs/config.js";
 
 export const createElection = async (req: Request, res: Response) => {
   try {
-    const { name, description, societyId, voterId } = req.body;
+    const { name, description, societyId, voterId, kValue } = req.body;
 
     if (!name || !societyId || !voterId) {
       return res
@@ -48,6 +47,7 @@ export const createElection = async (req: Request, res: Response) => {
       societyId: societyId,
       societyOwnerId: voterId,
       electionStatus: true,
+      kValue: kValue,
     });
 
     return res

@@ -14,15 +14,12 @@ import {
 import * as HTTP from "../utils/magicNumbers.js";
 
 import { Request, Response } from "express";
-import { Sequelize, Op } from "sequelize";
 
 export const castVote = async (req: Request, res: Response) => {
   const voterId = req.params.voterId;
   const candidateId = req.params.candidateId;
   const electionId = req.params.electionId;
-  console.log(voterId);
-  console.log(candidateId);
-  console.log(electionId);
+
   try {
     if (await doesElectionExist(electionId)) {
       return res
@@ -110,7 +107,6 @@ export const getOpenElections = async (req: Request, res: Response) => {
       ],
       attributes: [],
     });
-    console.log(openElections);
     return res.status(HTTP.STATUS_OK).send({ openElections });
   } catch (error) {
     console.log(error);
@@ -123,7 +119,15 @@ export const getOpenElections = async (req: Request, res: Response) => {
 export const getElectionResults = async (req: Request, res: Response) => {
   const electionId = req.params.electionId;
   try {
-    //Fetch all candidates for the election
+    const election = await Election.findOne({
+      where: {
+        electionId: electionId,
+      },
+      attributes: ["kValue"],
+    });
+
+    const kValue = election!.kValue;
+
     const candidates = await ElectionCandidates.findAll({
       where: { electionId: electionId },
       attributes: [
@@ -141,19 +145,17 @@ export const getElectionResults = async (req: Request, res: Response) => {
       attributes: ["candidateId"],
     });
 
-    // Create a map to count votes for each candidate
+    const totalVotes = votes.length;
+    const votesToCount = totalVotes - (totalVotes % kValue); // Ensure that the last few votes are not counted
+
+    // Count the votes for each candidate and store in a map
     const voteCounts = {};
-    votes.forEach(vote => {
-      voteCounts[vote.candidateId] = (voteCounts[vote.candidateId] || 0) + 1;
-    });
-
-    let totalElectionVotes = votes.length;
-
-    // Exclude the latest vote if totalElectionVotes is odd
-    if (totalElectionVotes % 2 !== 0) {
-      const latestVote = votes[votes.length - 1]; // Get the latest vote
-      voteCounts[latestVote.candidateId] -= 1; // Remove the latest vote from the count
-      totalElectionVotes -= 1; // adjust the totalElectionVotes
+    for (let i = 0; i < votesToCount; i++) {
+      const vote = votes[i];
+      if (!voteCounts[vote.candidateId]) {
+        voteCounts[vote.candidateId] = 0;
+      }
+      voteCounts[vote.candidateId]++;
     }
 
     //Merge the results so that all candidates are included even if they have no votes to their name

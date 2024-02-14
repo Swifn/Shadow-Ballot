@@ -28,6 +28,7 @@ export class Election extends Model<
   declare electionPicture: ForeignKey<FileStorage["fileId"]>;
   declare getSocietyPicture: BelongsToGetAssociationMixin<FileStorage>;
   declare createSocietyPicture: BelongsToCreateAssociationMixin<FileStorage>;
+  declare kValue: number;
 }
 
 export const init = sequelize =>
@@ -63,6 +64,10 @@ export const init = sequelize =>
       electionPicture: {
         type: DataTypes.INTEGER,
         defaultValue: null,
+      },
+      kValue: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
     },
     { modelName: "Election", freezeTableName: true, sequelize }
