@@ -55,6 +55,7 @@ export const init = sequelize =>
       },
       societyPicture: {
         type: DataTypes.INTEGER,
+        allowNull: true,
         defaultValue: null,
       },
     },

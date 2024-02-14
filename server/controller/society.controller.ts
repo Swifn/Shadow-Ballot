@@ -1,5 +1,10 @@
 import { Request, Response } from "express";
-import { FileStorage, Society, VoterSociety } from "../models/index.js";
+import {
+  Society,
+  VoterSociety,
+  SocietySubject,
+  FileStorage,
+} from "../models/index.js";
 import {
   isInSociety,
   doesSocietyExist,
@@ -10,10 +15,25 @@ import {
 import * as HTTP from "../utils/magicNumbers.js";
 import { v4 as uuid } from "uuid";
 import { FileRequest } from "../middleware/jwt.middleware.js";
+import { Sequelize } from "sequelize";
+
+interface Society {
+  societyId: number;
+  name: string;
+  description: string;
+
+  societySubject?: {
+    name: string;
+  };
+  subjectId?: number;
+  SocietyPicture?: {
+    path: string;
+  };
+}
 
 export const createSociety = async (req: Request, res: Response) => {
   try {
-    const { societyId, voterId, name, description, subject } = req.body;
+    const { societyId, voterId, name, description, subjectId } = req.body;
 
     if (!name || !description) {
       return res
@@ -32,7 +52,7 @@ export const createSociety = async (req: Request, res: Response) => {
       societyOwnerId: voterId,
       name: name,
       description: description,
-      subjectId: subject,
+      subjectId: subjectId,
       societyPicture: req?.societyPicture,
     });
 
@@ -44,6 +64,29 @@ export const createSociety = async (req: Request, res: Response) => {
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
       .send({ message: "Unable to create society" });
+  }
+};
+
+export const editSociety = async (req: Request, res: Response) => {
+  const id = req.params.societyId;
+  const { name, description } = req.body;
+  try {
+    await Society.update(
+      { name: name, description: description },
+      {
+        where: {
+          societyId: id,
+        },
+      }
+    );
+    return res
+      .status(HTTP.STATUS_OK)
+      .send({ message: "Society has been edited" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to edit society" });
   }
 };
 
@@ -148,11 +191,46 @@ export const leaveSociety = async (req: Request, res: Response) => {
 
 export const getAllSocieties = async (req: Request, res: Response) => {
   try {
-    const societies = await Society.findAll({
+    const unmodifiedSocieties = await Society.findAll({
       attributes: {
-        exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+        exclude: [
+          "subjectId",
+          "societyPicture",
+          "societyOwnerId",
+          "createdAt",
+          "updatedAt",
+        ],
       },
+      include: [
+        {
+          model: FileStorage,
+          attributes: ["path"],
+          as: "SocietyPicture",
+        },
+        {
+          model: SocietySubject,
+          attributes: ["name"],
+          where: {
+            subjectId: Sequelize.col("society.subjectId"),
+          },
+        },
+      ],
     });
+
+    const societies = unmodifiedSocieties.map(society => {
+      const typedSociety = society as Society & {
+        SocietyPicture?: { path: string };
+        SocietySubject?: { name: string };
+      };
+      return {
+        societyId: typedSociety.societyId,
+        name: typedSociety.name,
+        description: typedSociety.description,
+        societyPicture: typedSociety.SocietyPicture?.path,
+        societySubject: typedSociety.SocietySubject?.name,
+      };
+    });
+
     return res.status(HTTP.STATUS_OK).send({ societies });
   } catch (error) {
     console.log(error);
@@ -164,14 +242,36 @@ export const getAllSocieties = async (req: Request, res: Response) => {
 export const getOwnedSocieties = async (req: Request, res: Response) => {
   const voterId = req.params.voterId;
   try {
-    const societies = await Society.findAll({
+    const unmodifiedSocieties = await Society.findAll({
       attributes: {
         exclude: ["societyOwnerId", "createdAt", "updatedAt"],
       },
       where: {
         societyOwnerId: voterId,
       },
+      include: {
+        model: FileStorage,
+        attributes: ["path"],
+        as: "SocietyPicture",
+      },
     });
+
+    const societies = unmodifiedSocieties.map(society => {
+      const typedSociety = society as Society & {
+        SocietyPicture?: { path: string };
+        SocietySubject?: { name: string };
+      };
+
+      return {
+        societyId: typedSociety.societyId,
+        name: typedSociety.name,
+        description: typedSociety.description,
+        subjectId: typedSociety.subjectId,
+        societyPicture: typedSociety.SocietyPicture?.path,
+        societySubject: typedSociety.SocietySubject?.name,
+      };
+    });
+
     return res.status(HTTP.STATUS_OK).send({ societies });
   } catch (error) {
     console.log(error);
@@ -225,6 +325,20 @@ export const getSocietyById = async (req: Request, res: Response) => {
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
       .send({ message: "Unable to get society" });
+  }
+};
+
+export const getSocietySubjects = async (req: Request, res: Response) => {
+  try {
+    const subjects = await SocietySubject.findAll({
+      attributes: ["subjectId", "name"],
+    });
+    return res.status(HTTP.STATUS_OK).send({ subjects });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get society subjects" });
   }
 };
 
