@@ -140,14 +140,16 @@ export const Vote = () => {
       }
     }
 
-    try {
-      const response = await get(`vote/results/${selectedElection}`).then(res =>
-        res.json()
-      );
-      setGetResults(response);
-      console.log(response);
-    } catch (error) {
-      console.log(error);
+    if (selectedElection != null) {
+      try {
+        const response = await get(`vote/results/${selectedElection}`).then(
+          res => res.json()
+        );
+        setGetResults(response);
+        console.log(response);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
