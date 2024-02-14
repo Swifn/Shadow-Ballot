@@ -1,17 +1,33 @@
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import styles from "../society/style.module.scss";
-import { Button, InlineNotification, Search, TextInput } from "@carbon/react";
+import {
+  Button,
+  ComboBox,
+  InlineNotification,
+  Search,
+  TextArea,
+  TextInput,
+} from "@carbon/react";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Add, PortInput, Close, Exit } from "@carbon/icons-react";
 import { ElectionModal } from "../../components/election-modal";
 import { get, post } from "../../utils/fetch";
 import { Cards } from "../../components/cards";
+import { Routes } from "../index";
 
 interface Society {
   societyId: number;
   name: string;
   description: string;
+  societySubject: string;
+  societyPicture?: string;
+  path?: string;
+}
+
+interface SocietySubject {
+  subjectId: number;
+  name: string;
 }
 
 export const Society = () => {
@@ -28,6 +44,7 @@ export const Society = () => {
   const [selectedLeaveSociety, setSelectedLeaveSociety] = useState<
     number | null
   >(null);
+  const [selectedSubject, setSelectedSubject] = useState<number>(0);
   const [getAllResult, setGetAllResult] = useState<Society[] | null>([]);
   const [joinedSocieties, setJoinedSocieties] = useState<Society[] | null>([]);
   const [leaveSocieties, setLeaveSocieties] = useState<number | null>(null);
@@ -37,6 +54,9 @@ export const Society = () => {
     Society[]
   >([]);
   const [filteredJoinSocieties, setFilteredJoinSocieties] = useState<Society[]>(
+    []
+  );
+  const [getSocietySubject, setGetSocietySubject] = useState<SocietySubject[]>(
     []
   );
   const voterId = localStorage.getItem("USER_ID");
@@ -54,6 +74,17 @@ export const Society = () => {
   };
   const searchJoinHandler = event => {
     setJoinSearch(event.target.value);
+  };
+
+  const viewSocietyPage = async (societyId: number) => {
+    navigate(Routes.SOCIETY_PAGE(societyId.toString()));
+  };
+  const comboBoxHandler = event => {
+    const subjectName = event.selectedItem;
+    const subjectId = getSocietySubject.find(
+      subject => subject.name === subjectName
+    )?.subjectId;
+    setSelectedSubject(subjectId!);
   };
 
   useEffect(() => {
@@ -147,8 +178,17 @@ export const Society = () => {
         a.name.localeCompare(b.name)
       );
       setGetAllResult(sortedSocieties);
+      console.log("Get all societies", response.societies);
     } catch (error) {
       console.log(`Error when retrieving all society data: ${error}`);
+    }
+    try {
+      const response = await get(`society/get-society-subject`).then(res =>
+        res.json()
+      );
+      setGetSocietySubject(response.subjects);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -158,6 +198,7 @@ export const Society = () => {
 
     const formData = new FormData(form.current ?? undefined);
     formData.append("voterId", voterId!);
+    formData.append("subjectId", selectedSubject.toString());
 
     const body = Object.fromEntries(formData.entries());
     const response = await post("society/create", body);
@@ -255,12 +296,14 @@ export const Society = () => {
                         name={society.name}
                         key={society.societyId}
                         description={society.description}
+                        societySubject={society.societySubject}
+                        profilePicture={society.societyPicture}
                       >
                         <Button
-                          onClick={() => joinSocietyHandler(society.societyId)}
+                          onClick={() => viewSocietyPage(society.societyId)}
                           renderIcon={PortInput}
                         >
-                          Join
+                          View Society
                         </Button>
                       </Cards>
                     ))}
@@ -287,6 +330,7 @@ export const Society = () => {
                         name={society.name}
                         key={society.societyId}
                         description={society.description}
+                        societySubject={society.societySubject}
                       >
                         <Button
                           onClick={() => {
@@ -343,12 +387,18 @@ export const Society = () => {
                     name="name"
                     invalid={error !== null}
                   />
-                  <TextInput
+                  <TextArea
                     id="description"
                     labelText="Description"
                     name="description"
                     type="text"
                     invalid={error !== null}
+                  />
+                  <ComboBox
+                    id={"subject"}
+                    items={getSocietySubject.map(subject => subject.name)}
+                    onChange={comboBoxHandler}
+                    placeholder={"Select a subject"}
                   />
                   <div className={styles.submit}>
                     <Button
