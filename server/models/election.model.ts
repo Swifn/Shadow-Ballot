@@ -29,6 +29,8 @@ export class Election extends Model<
   declare getSocietyPicture: BelongsToGetAssociationMixin<FileStorage>;
   declare createSocietyPicture: BelongsToCreateAssociationMixin<FileStorage>;
   declare kValue: number;
+  declare start: Date;
+  declare end: Date;
 }
 
 export const init = sequelize =>
@@ -67,6 +69,14 @@ export const init = sequelize =>
       },
       kValue: {
         type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      start: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      end: {
+        type: DataTypes.DATE,
         allowNull: false,
       },
     },

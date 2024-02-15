@@ -13,15 +13,81 @@ import {
   isElectionOpen,
   isNewCandidate,
   isSocietyOwner,
+  combineDateTime,
 } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
-import { Config } from "../configs/config.js";
+import cron from "node-cron";
+import { Op } from "sequelize";
+import { isPast, isFuture } from "date-fns";
 
-//TODO: have a time /  date option for when the vote should open and close.
+cron.schedule("* * * * *", async () => {
+  try {
+    console.log("Checking for elections to close...");
 
+    const elections = await Election.findAll({
+      where: {
+        end: {
+          [Op.lte]: new Date(), // Find elections that should have ended by now.
+        },
+        electionStatus: true,
+      },
+    });
+
+    // Loop through the elections and close them if they have ended.
+    for (const election of elections) {
+      // Check if the election has ended and is still open.
+      if (isPast(election.end) && election.electionStatus) {
+        // Use date-fns to check if the endTime is in the past.
+        await election.update({ electionStatus: false });
+        console.log(`Election ${election.electionId} closed.`);
+      }
+    }
+  } catch (error) {
+    console.error("Error closing elections:", error);
+  }
+
+  try {
+    console.log("Checking for elections to open...");
+
+    const elections = await Election.findAll({
+      where: {
+        start: {
+          [Op.lte]: new Date(),
+        },
+        electionStatus: false,
+      },
+    });
+
+    for (const election of elections) {
+      if (
+        isPast(election.start) &&
+        isFuture(election.end) &&
+        !election.electionStatus
+      ) {
+        await election.update({ electionStatus: true });
+        console.log(`Election ${election.electionId} open.`);
+      }
+    }
+  } catch (error) {
+    console.error("Error closing elections:", error);
+  }
+});
 export const createElection = async (req: Request, res: Response) => {
   try {
-    const { name, description, societyId, voterId, kValue } = req.body;
+    const {
+      name,
+      description,
+      societyId,
+      voterId,
+      kValue,
+      endDate,
+      endTime,
+      startDate,
+      startTime,
+    } = req.body;
+
+    const end = combineDateTime(endDate, endTime);
+    const start = combineDateTime(startDate, startTime);
 
     if (!name || !societyId || !voterId) {
       return res
@@ -46,8 +112,10 @@ export const createElection = async (req: Request, res: Response) => {
       description: description,
       societyId: societyId,
       societyOwnerId: voterId,
-      electionStatus: true,
+      electionStatus: false,
       kValue: kValue,
+      start: start,
+      end: end,
     });
 
     return res

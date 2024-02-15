@@ -96,7 +96,7 @@ h1{
   align-items: start;
 }
 
-.ownerPanel Button, FileUpload
+.ownerPanel Button,
 {
   margin: 0 0 0 10px;
   border-radius: 8px;
@@ -129,6 +129,11 @@ TextArea{
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+.datePicker{
+  display: flex;
+  justify-content: space-evenly;
 }
 
 

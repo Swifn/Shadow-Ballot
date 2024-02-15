@@ -6,20 +6,28 @@ import { AuthenticatedRoute } from "../../components/conditional-route";
 import {
   Button,
   ComboBox,
+  DatePicker,
+  DatePickerInput,
   FileUploader,
   InlineNotification,
   NumberInput,
+  SelectItem,
   TextArea,
   TextInput,
+  TimePicker,
+  TimePickerSelect,
 } from "@carbon/react";
 import { Close, Delete, Edit, PortInput, ResultNew } from "@carbon/icons-react";
 import { ElectionModal } from "../../components/election-modal";
 import { Routes } from "../index";
+import { startOfDay } from "date-fns";
 
 interface Society {
   name: string;
   description: string;
   SocietySubject: {
+    subjectId: number;
+
     name: string;
   };
   picture?: string;
@@ -47,6 +55,13 @@ export const SocietyPage = () => {
   const [modal, setModal] = useState(false);
   const [modalContext, setModalContext] = useState<string | null>(null);
   const [kValue, setKValue] = useState<number>(2);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("12:00");
+  const [endTime, setEndTime] = useState("12:00");
+  const [startTimeZone, setStartTimeZone] = useState("GMT");
+  const [endTimeZone, setEndTimeZone] = useState("GMT");
+
   const editSocietiesForm = useRef<HTMLFormElement>(null);
   const electionForm = useRef<HTMLFormElement>(null);
   const voterId = localStorage.getItem("USER_ID");
@@ -76,15 +91,18 @@ export const SocietyPage = () => {
 
   const createElectionSubmit = async (event: FormEvent) => {
     event.preventDefault();
-
     const formData = new FormData(electionForm.current ?? undefined);
     formData.append("voterId", voterId ?? "");
-
     formData.append("societyId", sid.sid!.toString() ?? "");
     formData.append("kValue", kValue.toString() ?? "");
+    formData.append("startDate", startDate);
+    formData.append("endDate", endDate);
+    formData.append("startTime", startTime);
+    formData.append("endTime", endTime);
+    formData.append("startTimeZone", startTimeZone);
+    formData.append("endTimeZone", endTimeZone);
 
     const body = Object.fromEntries(formData.entries());
-    console.log(body);
     const response = await post("election/create", body);
     // await getElectionData(voterId);
     await setStateBasedOnResponse(response);
@@ -95,7 +113,7 @@ export const SocietyPage = () => {
     event.preventDefault();
     const formData = new FormData(editSocietiesForm.current ?? undefined);
     formData.append("societyId", sid.sid ?? "");
-    formData.append("subjectId", selectedSubject.toString());
+    formData.append("subjectId", selectedSubject.toString() ?? "");
     const body = Object.fromEntries(formData.entries());
     const response = await patch(`society/edit-society/${sid.sid}`, body);
     if (picture) {
@@ -125,7 +143,7 @@ export const SocietyPage = () => {
       try {
         await deleteSociety();
       } catch (error) {
-        console.error(error);
+        console.log(error);
       }
     })();
   }, [deleteSocieties]);
@@ -155,7 +173,6 @@ export const SocietyPage = () => {
       if (response.ok) {
         setIsSocietyOwner(true);
       }
-      console.log(isSocietyOwner);
     } catch (error) {
       console.log(error);
     }
@@ -172,7 +189,6 @@ export const SocietyPage = () => {
   const societyMember = async () => {
     try {
       const response = await get(`society/is-in-society/${sid.sid}/${voterId}`);
-      console.log(response);
       if (response.ok) {
         setIsSocietyMember(false);
       } else {
@@ -205,7 +221,6 @@ export const SocietyPage = () => {
   const leaveSociety = async (sid: string) => {
     try {
       const response = await post(`society/leave/${sid}/${voterId}}`);
-      console.log(response);
       await setStateBasedOnResponse(response);
       await societyMember();
     } catch (error) {
@@ -340,7 +355,9 @@ export const SocietyPage = () => {
             <h2>About Us</h2>
             <p>{societyData.description}</p>
           </div>
-          <div className={styles.bottomContainer}></div>
+          <div className={styles.bottomContainer}>
+            <h2>Who's Involved</h2>
+          </div>
         </div>
         <ElectionModal modal={modal}>
           {modalContext === "createElection" && (
@@ -370,6 +387,65 @@ export const SocietyPage = () => {
                 required={true}
                 onChange={kValueHandler}
               />
+              <div className={styles.datePicker}>
+                <DatePicker
+                  datePickerType="range"
+                  onChange={event => {
+                    setStartDate(event[0].toISOString().split("T")[0]);
+                    setEndDate(event[1].toISOString().split("T")[0]);
+                  }}
+                  minDate={startOfDay(new Date()).toISOString()}
+                >
+                  <DatePickerInput
+                    id="date-picker-input-id-start"
+                    placeholder="mm/dd/yyyy"
+                    labelText="Start date"
+                  />
+                  <DatePickerInput
+                    id="date-picker-input-id-finish"
+                    placeholder="mm/dd/yyyy"
+                    labelText="End date"
+                  />
+                </DatePicker>
+              </div>
+              <TimePicker
+                onChange={event => {
+                  setStartTime(event.target.value);
+                }}
+                defaultValue={"12:00"}
+                id="time-picker"
+                labelText="Select a start time"
+                pattern={"[0-9]{2}:[0-9]{2}"}
+              >
+                <TimePickerSelect
+                  id="time-picker-select-2"
+                  defaultValue="UTC"
+                  onChange={event => setStartTimeZone(event.target.value)}
+                >
+                  <SelectItem value="BST" text="BST" />
+                  <SelectItem value="UTC" text="UTC" />
+                </TimePickerSelect>
+              </TimePicker>
+              <TimePicker
+                id="time-picker"
+                labelText="Select a finish time"
+                defaultValue={"12:00"}
+                pattern={"[0-9]{2}:[0-9]{2}"}
+                onChange={event => {
+                  setEndTime(event.target.value);
+                }}
+              >
+                <TimePickerSelect
+                  id="time-picker-select-2"
+                  defaultValue="UTC"
+                  onChange={event => {
+                    setEndTimeZone(event.target.value);
+                  }}
+                >
+                  <SelectItem value="BST" text="BST" />
+                  <SelectItem value="UTC" text="UTC" />
+                </TimePickerSelect>
+              </TimePicker>
               <Button
                 onClick={() => setModal(!modal)}
                 renderIcon={Close}
@@ -404,7 +480,7 @@ export const SocietyPage = () => {
                   items={getSocietySubject.map(subject => subject.name)}
                   onChange={comboBoxHandler}
                   placeholder={"Select a subject"}
-                  defaultValue={societyData.SocietySubject.name}
+                  defaultValue={societyData.SocietySubject.subjectId}
                 />
                 <TextArea
                   className={styles.textArea}

@@ -69,13 +69,13 @@ export const createSociety = async (req: Request, res: Response) => {
 };
 
 export const editSociety = async (req: Request, res: Response) => {
-  const id = req.params.societyId;
+  const id = parseInt(req.params.societyId);
   try {
     await Society.update(
       {
         name: req.body?.name,
         description: req.body?.description,
-        subjectId: req.body?.subjectId,
+        subjectId: parseInt(req.body?.subjectId),
       },
       {
         where: {
@@ -468,10 +468,8 @@ export const societyMember = async (req: Request, res: Response) => {
     const inSociety = await isInSociety(societyId, voterId);
 
     if (!inSociety) {
-      console.log("true");
       return res.status(HTTP.STATUS_OK).send(true);
     } else {
-      console.log("false");
       return res.status(HTTP.STATUS_BAD_REQUEST).send(false);
     }
   } catch (error) {

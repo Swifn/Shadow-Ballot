@@ -171,11 +171,17 @@ export const isNewVote = async (
   return newVote !== null;
 };
 
-export const kAnonymity = async electionId => {
-  const anonymous = await Vote.findAll({
-    where: {
-      electionId: electionId,
-    },
-    include: {},
-  });
-};
+export function combineDateTime(dateString: string, timeString: string): Date {
+  // Parse the date string to get a Date object
+  const date = new Date(dateString);
+
+  // Extract hours and minutes from the time string
+  const timeParts = timeString.split(":");
+  const hours = parseInt(timeParts[0], 10);
+  const minutes = parseInt(timeParts[1], 10);
+
+  // Set hours and minutes on the date object
+  date.setHours(hours, minutes);
+
+  return date;
+}

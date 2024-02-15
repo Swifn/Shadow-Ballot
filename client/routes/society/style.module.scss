@@ -1,9 +1,16 @@
 .cardContainer{
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   margin-top: 10px;
+  text-align: center;
+  justify-content: start;
+  width: auto;
 
+}
+
+.outerContainer{
+  width: 100%;
+  justify-content: start;
 }
 
 .notification {
@@ -66,7 +73,8 @@
   justify-content: start;
   align-items: center;
   width: 85vw;
-  height: 85vh;
+  height: auto;
+  min-height: 85vh;
 }
 
 .create{
@@ -88,9 +96,9 @@
   border-radius: 8px;
   margin: 25px;
   padding: 50px;
-  overflow: auto;
   width: 85vw;
-  height: 85vh;
+  height: auto;
+  min-height: 85vh;
 }
 
 .search{

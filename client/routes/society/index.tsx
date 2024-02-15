@@ -38,23 +38,21 @@ export const Society = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [formEnabled, setFormEnabled] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState<number>(0);
-  const [getAllResult, setGetAllResult] = useState<Society[] | null>([]);
   const [joinedSocieties, setJoinedSocieties] = useState<Society[] | null>([]);
-  const [joinSearch, setJoinSearch] = useState("");
+  const [search, setSearch] = useState("");
+  const [filteredSocieties, setFilteredSocieties] = useState({});
+  const [societiesBySubject, setSocietiesBySubject] = useState({});
 
-  const [filteredJoinSocieties, setFilteredJoinSocieties] = useState<Society[]>(
-    []
-  );
   const [getSocietySubject, setGetSocietySubject] = useState<SocietySubject[]>(
     []
   );
   const voterId = localStorage.getItem("USER_ID");
 
-  const searchJoinHandler = event => {
-    setJoinSearch(event.target.value);
+  const searchHandler = event => {
+    setSearch(event.target.value);
   };
 
-  const viewSocietyPage = async (societyId: number) => {
+  const viewSocietyPageHandler = async (societyId: number) => {
     navigate(Routes.SOCIETY_PAGE(societyId.toString()));
   };
   const comboBoxHandler = event => {
@@ -66,18 +64,31 @@ export const Society = () => {
   };
 
   useEffect(() => {
-    if (!getAllResult || !joinedSocieties) return;
-    const notJoinedSocieties = getAllResult.filter(
-      allSociety =>
-        !joinedSocieties.some(
-          joinedSociety => joinedSociety.societyId === allSociety.societyId
-        )
-    );
-    const filteredSocieties = notJoinedSocieties.filter(society =>
-      society.name.toLowerCase().includes(joinSearch.toLowerCase())
-    );
-    setFilteredJoinSocieties(filteredSocieties);
-  }, [joinSearch, getAllResult, joinedSocieties]);
+    if (!search) {
+      // If the search term is empty, set the filtered societies to the original object
+      setFilteredSocieties(societiesBySubject);
+      return;
+    }
+    // Filter the societies by the search term and update the state with the filtered societies object (if there are any)
+    const filtered = {};
+
+    // Loop through each subject and filter the societies by the search term
+    for (const subject in societiesBySubject) {
+      // If the subject doesn't have any societies, skip it
+      const societies = societiesBySubject[subject].filter(society =>
+        // Check if the society's name includes the search term
+        society.name.toLowerCase().includes(search.toLowerCase())
+      );
+
+      // If there are any societies for this subject, add them to the filtered object
+      if (societies.length > 0) {
+        // Add the filtered societies to the filtered object
+        filtered[subject] = societies;
+      }
+    }
+    // Update the state with the filtered societies
+    setFilteredSocieties(filtered);
+  }, [search, societiesBySubject]);
 
   const fetchData = async () => {
     try {
@@ -93,13 +104,9 @@ export const Society = () => {
       console.log(`Error when retrieving owned society data: ${error}`);
     }
     try {
-      const response = await get("society/get-all").then(res => res.json());
-      setGetAllResult(response.societies);
-      const sortedSocieties = response.societies.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      setGetAllResult(sortedSocieties);
-      console.log("Get all societies", response.societies);
+      const allSocieties = await get("society/get-all").then(res => res.json());
+      const groupedSocieties = groupSocietiesBySubject(allSocieties.societies);
+      setSocietiesBySubject(groupedSocieties);
     } catch (error) {
       console.log(`Error when retrieving all society data: ${error}`);
     }
@@ -113,6 +120,24 @@ export const Society = () => {
     }
   };
 
+  const groupSocietiesBySubject = societies => {
+    // Create an object to group the societies by their subject
+    const grouped = {};
+    // Loop through each society and group them by their subject
+    societies.forEach(society => {
+      // Use the society's subject as the key
+      const subject = society.societySubject;
+      // If we don't have this subject in our grouped object, add it as an empty array to start with
+      if (!grouped[subject]) {
+        // Add the subject as a key in the grouped object
+        grouped[subject] = [];
+      }
+      // Add the society to the correct group
+      grouped[subject].push(society);
+    });
+    return grouped;
+  };
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setFormEnabled(false);
@@ -124,7 +149,9 @@ export const Society = () => {
     const body = Object.fromEntries(formData.entries());
     const response = await post("society/create", body);
     await setStateBasedOnResponse(response);
+    await fetchData();
     setModal(!modal);
+    setFormEnabled(true);
   };
 
   const setStateBasedOnResponse = async response => {
@@ -202,33 +229,45 @@ export const Society = () => {
                 </Button>
               </div>
               <div className={styles.header}>
-                <h2>Join a society</h2>
+                <h2>View Societies by Subjects</h2>
               </div>
               <Search
-                labelText={"Search to join society"}
-                value={joinSearch}
-                onChange={searchJoinHandler}
+                labelText={"Search for a society"}
+                value={search}
+                onChange={searchHandler}
                 className={styles.search}
-                placeholder={"Search to join society"}
+                placeholder={"Search for a society"}
               />
               <div className={styles.join}>
                 <div className={styles.cardContainer}>
-                  {filteredJoinSocieties &&
-                    filteredJoinSocieties.map(society => (
-                      <Cards
-                        name={society.name}
-                        key={society.societyId}
-                        societySubject={society.societySubject}
-                        profilePicture={society.societyPicture}
-                      >
-                        <Button
-                          onClick={() => viewSocietyPage(society.societyId)}
-                          renderIcon={PortInput}
-                        >
-                          View Society
-                        </Button>
-                      </Cards>
-                    ))}
+                  <div className={styles.outerContainer}>
+                    {Object.keys(filteredSocieties)
+                      .sort()
+                      .map(subject => (
+                        <div key={subject}>
+                          <h2>{subject}</h2>
+                          <div className={styles.cardContainer}>
+                            {filteredSocieties[subject].map(society => (
+                              <Cards
+                                name={society.name}
+                                key={society.societyId}
+                                societySubject={society.societySubject}
+                                profilePicture={society.societyPicture}
+                              >
+                                <Button
+                                  onClick={() =>
+                                    viewSocietyPageHandler(society.societyId)
+                                  }
+                                  renderIcon={PortInput}
+                                >
+                                  View Society
+                                </Button>
+                              </Cards>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </div>
             </div>
