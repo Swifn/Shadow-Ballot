@@ -11,6 +11,7 @@ import {
   notInSociety,
   notNameUnique,
   notSocietyExist,
+  isSocietyOwner,
 } from "../utils/utils.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import { v4 as uuid } from "uuid";
@@ -69,10 +70,13 @@ export const createSociety = async (req: Request, res: Response) => {
 
 export const editSociety = async (req: Request, res: Response) => {
   const id = req.params.societyId;
-  const { name, description } = req.body;
   try {
     await Society.update(
-      { name: name, description: description },
+      {
+        name: req.body?.name,
+        description: req.body?.description,
+        subjectId: req.body?.subjectId,
+      },
       {
         where: {
           societyId: id,
@@ -119,7 +123,8 @@ export const deleteSociety = async (req: Request, res: Response) => {
 };
 
 export const joinSociety = async (req: Request, res: Response) => {
-  const { voterId, societyId } = req.body;
+  const societyId = parseInt(req.params.societyId);
+  const voterId = parseInt(req.params.voterId);
 
   const societyName = await Society.findOne({
     where: { societyId: societyId },
@@ -155,8 +160,8 @@ export const joinSociety = async (req: Request, res: Response) => {
 };
 
 export const leaveSociety = async (req: Request, res: Response) => {
-  const societyId = req.params.societyId;
-  const voterId = req.params.voterId;
+  const societyId = parseInt(req.params.societyId);
+  const voterId = parseInt(req.params.voterId);
   try {
     if (await doesSocietyExist(societyId)) {
       return res
@@ -249,11 +254,20 @@ export const getOwnedSocieties = async (req: Request, res: Response) => {
       where: {
         societyOwnerId: voterId,
       },
-      include: {
-        model: FileStorage,
-        attributes: ["path"],
-        as: "SocietyPicture",
-      },
+      include: [
+        {
+          model: FileStorage,
+          attributes: ["path"],
+          as: "SocietyPicture",
+        },
+        {
+          model: SocietySubject,
+          attributes: ["name"],
+          where: {
+            subjectId: Sequelize.col("society.subjectId"),
+          },
+        },
+      ],
     });
 
     const societies = unmodifiedSocieties.map(society => {
@@ -318,7 +332,17 @@ export const getSocietyById = async (req: Request, res: Response) => {
       attributes: {
         exclude: ["societyOwnerId", "createdAt", "updatedAt"],
       },
+      include: [
+        {
+          model: SocietySubject,
+          attributes: ["name"],
+          where: {
+            subjectId: Sequelize.col("society.subjectId"),
+          },
+        },
+      ],
     });
+
     return res.status(HTTP.STATUS_OK).send({ society });
   } catch (error) {
     console.log(error);
@@ -356,7 +380,6 @@ export const getSocietyPicture = async (req: Request, res: Response) => {
     let path;
     if (societyPicture) {
       path = societyPicture.path;
-      console.log(path);
     } else {
       path = "client/assets/bg.jpg";
     }
@@ -372,8 +395,6 @@ export const getSocietyPicture = async (req: Request, res: Response) => {
 
 export const uploadSocietyPicture = async (req: FileRequest, res: Response) => {
   const societyId = req.params.societyId;
-  console.log(` Society ID is: ${societyId}`);
-
   try {
     if (!req.files?.file) {
       return res
@@ -419,5 +440,44 @@ export const uploadSocietyPicture = async (req: FileRequest, res: Response) => {
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
       .send({ message: "Unable to upload society picture" });
+  }
+};
+
+export const societyOwner = async (req: Request, res: Response) => {
+  try {
+    const societyId = req.params.societyId;
+    const voterId = req.params.voterId;
+
+    const owner = await isSocietyOwner(societyId, voterId);
+
+    if (!owner) {
+      return res.status(HTTP.STATUS_OK).send(true);
+    } else {
+      return res.status(HTTP.STATUS_BAD_REQUEST).send(false);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const societyMember = async (req: Request, res: Response) => {
+  try {
+    const societyId = req.params.societyId;
+    const voterId = req.params.voterId;
+
+    const inSociety = await isInSociety(societyId, voterId);
+
+    if (!inSociety) {
+      console.log("true");
+      return res.status(HTTP.STATUS_OK).send(true);
+    } else {
+      console.log("false");
+      return res.status(HTTP.STATUS_BAD_REQUEST).send(false);
+    }
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to check if in society" });
   }
 };

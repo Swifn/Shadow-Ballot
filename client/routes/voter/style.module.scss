@@ -3,7 +3,8 @@
   justify-content: center;
   flex-wrap: wrap;
   margin-top: 100px;
-  //min-width: 60vw;
+  min-width: 60vw;
+  //min-height: 85vh;
 }
 
 .notification {
@@ -29,8 +30,8 @@ h3{
 
 }
 
-.textArea{
-  width: 100%;
-  margin: 0;
-  padding: 0;
+TextArea{
+  max-height: 200px;
+  min-height: 200px;
+  overflow: scroll;
 }

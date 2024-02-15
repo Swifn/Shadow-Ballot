@@ -60,15 +60,15 @@ export const Vote = () => {
   };
 
   const setStateBasedOnResponse = async response => {
-    const responseMessage = (await response).message;
+    const responseMessage = (await response.json()).message;
     if (response.ok) {
+      console.log(responseMessage);
       setSuccess(responseMessage);
       setError(null);
     } else {
       setSuccess(null);
       setError(responseMessage);
     }
-    await setStateBasedOnResponse(null);
   };
 
   const vote = async () => {
@@ -76,7 +76,7 @@ export const Vote = () => {
       try {
         const response = await post(
           `vote/election/${selectedElection}/voter/${voterId}/candidate/${selectedCandidate}`
-        ).then(res => res.json());
+        );
         await setStateBasedOnResponse(response);
         setSelectedCandidate(null);
       } catch (error) {
@@ -179,8 +179,16 @@ export const Vote = () => {
           <title>Vote</title>
         </Helmet>
         <div className={styles.notification}>
-          {error && <InlineNotification title={error} />}
-          {success && <InlineNotification title={success} kind="success" />}
+          {error && (
+            <InlineNotification onClose={() => setError(null)} title={error} />
+          )}
+          {success && (
+            <InlineNotification
+              onClose={() => setSuccess(null)}
+              title={success}
+              kind="success"
+            />
+          )}
         </div>
         <div className={styles.container}>
           <main>

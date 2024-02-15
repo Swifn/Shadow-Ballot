@@ -1,22 +1,12 @@
 import { Helmet } from "react-helmet";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
-import { get, patch, post, postFile } from "../../utils/fetch";
+import { get, patch, post } from "../../utils/fetch";
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import { Cards } from "../../components/cards";
-import {
-  Button,
-  FileUploader,
-  InlineNotification,
-  NumberInput,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+import { Button, InlineNotification, TextInput } from "@carbon/react";
 import styles from "./style.module.scss";
 import {
-  Delete,
   PortInput,
-  ResultNew,
-  Edit,
   Close,
   Locked,
   Unlocked,
@@ -24,6 +14,8 @@ import {
 } from "@carbon/icons-react";
 import { ElectionModal } from "../../components/election-modal";
 import { TabComponent } from "../../components/tabs";
+import { Routes } from "../index";
+import { useNavigate } from "react-router-dom";
 
 interface Society {
   societyId: number;
@@ -41,10 +33,8 @@ interface Election {
 }
 
 export const Voter = () => {
-  //const navigate = useNavigate();
+  const navigate = useNavigate();
   const [ownedSocieties, setOwnedSocieties] = useState<Society[] | null>([]);
-  const [deleteSocieties, setDeleteSocieties] = useState<number | null>(null);
-  const [editSocieties, setEditSocieties] = useState<number | null>(null);
   const [ownedElections, setOwnedElections] = useState<Election[] | null>([]);
   const [createElectionForSociety, setCreateElectionForSociety] = useState<
     number | null
@@ -53,48 +43,13 @@ export const Voter = () => {
   const [closeElection, setCloseElection] = useState<number | null>(null);
   const [openElection, setOpenElection] = useState<number | null>(null);
   const [selectedSociety, setSelectedSociety] = useState<number | null>(null);
-  const electionForm = useRef<HTMLFormElement>(null);
   const candidateForm = useRef<HTMLFormElement>(null);
-  const editSocietiesForm = useRef<HTMLFormElement>(null);
   const candidateStatusForm = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
-  const [modalContext, setModalContext] = useState<string | null>(null);
-  const [picture, setPicture] = useState(null);
-  const [kValue, setKValue] = useState<number>(2);
 
   const voterId = localStorage.getItem("USER_ID");
-  const createElectionSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-
-    const formData = new FormData(electionForm.current ?? undefined);
-    formData.append("voterId", voterId ?? "");
-
-    formData.append("societyId", createElectionForSociety!.toString() ?? "");
-    formData.append("kValue", kValue.toString() ?? "");
-
-    const body = Object.fromEntries(formData.entries());
-    console.log(body);
-    const response = await post("election/create", body);
-    await getElectionData(voterId);
-    await setStateBasedOnResponse(response);
-    setModal(!modal);
-  };
-
-  const editSocietySubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    const formData = new FormData(editSocietiesForm.current ?? undefined);
-    formData.append("societyId", editSocieties!.toString());
-    const body = Object.fromEntries(formData.entries());
-    const response = await patch(`society/edit-society/${editSocieties}`, body);
-    if (picture) {
-      await uploadFile();
-    }
-    await fetchData();
-    await setStateBasedOnResponse(response);
-    setModal(false);
-  };
 
   const addElectionCandidateSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -132,25 +87,6 @@ export const Voter = () => {
     setSelectedElection(electionId);
     setSelectedSociety(societyId);
   };
-  const deleteSocietyHandler = async (societyId: number) => {
-    setDeleteSocieties(societyId);
-  };
-  const editSocietyHandler = async (societyId: number) => {
-    setEditSocieties(societyId);
-  };
-  const createElectionHandler = async (societyId: number) => {
-    setCreateElectionForSociety(societyId);
-  };
-
-  const handleFileUpload = event => {
-    const file = event.target.files[0];
-    setPicture(file);
-  };
-
-  const kValueHandler = (event, newValue) => {
-    setKValue(newValue.value);
-    console.log(kValue);
-  };
 
   const setStateBasedOnResponse = async response => {
     const responseMessage = (await response.json()).message;
@@ -181,7 +117,6 @@ export const Voter = () => {
         setSelectedElection(null);
         setCloseElection(null);
         setOpenElection(null);
-        console.log("IN USE EFFECT");
       } catch (error) {
         console.log(error);
       }
@@ -193,7 +128,7 @@ export const Voter = () => {
       try {
         await electionStatusUpdateOpen();
       } catch (error) {
-        console.error("An error occurred:", error);
+        console.log(error);
       }
     })();
   }, [
@@ -214,7 +149,7 @@ export const Voter = () => {
       );
       setOwnedElections(sortedElections);
     } catch (error) {
-      console.log(`Error when retrieving owned Election data: ${error}`);
+      console.log(error);
     }
   };
 
@@ -259,33 +194,6 @@ export const Voter = () => {
     setOpenElection,
   ]);
 
-  const deleteSociety = async () => {
-    if (deleteSocieties !== null) {
-      try {
-        const response = await post(`society/delete/${deleteSocieties}`);
-        await setStateBasedOnResponse(response);
-        const updatedSocieties = ownedSocieties!.filter(
-          society => society.societyId !== deleteSocieties
-        );
-        setOwnedSocieties(updatedSocieties);
-        setDeleteSocieties(null);
-        setSelectedSociety(null);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    (async () => {
-      try {
-        await deleteSociety();
-      } catch (error) {
-        console.error(error);
-      }
-    })();
-  }, [deleteSocieties, ownedSocieties]);
-
   const fetchData = async () => {
     try {
       const response = await get(`society/get-owned/${voterId}`).then(res =>
@@ -297,7 +205,7 @@ export const Voter = () => {
       );
       setOwnedSocieties(sortedSocieties);
     } catch (error) {
-      console.log(`Error when retrieving owned society data: ${error}`);
+      console.log(error);
     }
     await getElectionData(voterId);
   };
@@ -306,7 +214,7 @@ export const Voter = () => {
       try {
         await fetchData();
       } catch (error) {
-        console.error("An error occurred:", error);
+        console.log(error);
       }
     })();
   }, [createElectionForSociety, voterId]);
@@ -317,28 +225,6 @@ export const Voter = () => {
     setSelectedElection(0);
   };
 
-  const uploadFile = async () => {
-    console.log(picture);
-    console.log("HERE AGAIN");
-    const response = await postFile(
-      `society/upload-society-picture/${editSocieties}`,
-      picture
-    );
-    if (!response.ok) {
-      alert("Failed to upload file");
-    }
-  };
-
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       await uploadFile();
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   })();
-  // }, [picture]);
-
   return (
     <AuthenticatedRoute>
       <div className={styles.pageContainer}>
@@ -346,8 +232,16 @@ export const Voter = () => {
           <title>My Societies</title>
         </Helmet>
         <div className={styles.notification}>
-          {success && <InlineNotification title={success} kind="success" />}
-          {error && <InlineNotification title={error} />}
+          {success && (
+            <InlineNotification
+              onClose={() => setSuccess(null)}
+              title={success}
+              kind="success"
+            />
+          )}
+          {error && (
+            <InlineNotification onClose={() => setError(null)} title={error} />
+          )}
         </div>
         <TabComponent
           tabListNames={[
@@ -367,170 +261,20 @@ export const Voter = () => {
                     <Cards
                       name={society.name}
                       key={society.societyId}
-                      description={society.description}
                       profilePicture={society.societyPicture}
                     >
                       <Button
-                        onClick={() => {
-                          setModalContext("createElection");
-                          createElectionHandler(society.societyId);
-                          setModal(!modal);
-                        }}
-                        renderIcon={ResultNew}
-                        kind={"tertiary"}
+                        onClick={() =>
+                          navigate(
+                            Routes.SOCIETY_PAGE(society.societyId.toString())
+                          )
+                        }
+                        renderIcon={PortInput}
                       >
-                        Create Election
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          editSocietyHandler(society.societyId);
-                          setModalContext("editSociety");
-                          setModal(!modal);
-                        }}
-                        renderIcon={Edit}
-                        kind={"primary"}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setModalContext("deleteSociety");
-                          setSelectedSociety(society.societyId);
-                          setModal(!modal);
-                        }}
-                        renderIcon={Delete}
-                        kind={"danger"}
-                      >
-                        Delete
+                        Go to Society
                       </Button>
                     </Cards>
                   ))}
-                <ElectionModal modal={modal}>
-                  {modalContext === "createElection" && (
-                    <form ref={electionForm} onSubmit={createElectionSubmit}>
-                      <h3>Create Election</h3>
-                      <TextInput
-                        id={"election_name"}
-                        labelText={"Election Name"}
-                        type={"text"}
-                        name={"name"}
-                        required={true}
-                      />
-                      <TextInput
-                        id={"description"}
-                        labelText={"Description"}
-                        type={"text"}
-                        name={"description"}
-                        required={true}
-                      />
-                      <NumberInput
-                        id={"kValue"}
-                        label={"K-anonymity value"}
-                        size={"lg"}
-                        min={1}
-                        max={10}
-                        defaultValue={2}
-                        required={true}
-                        onChange={kValueHandler}
-                      />
-                      <Button
-                        onClick={() => toggleModal()}
-                        renderIcon={Close}
-                        kind={"danger"}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        renderIcon={PortInput}
-                        kind={"primary"}
-                        type={"submit"}
-                      >
-                        Create
-                      </Button>
-                    </form>
-                  )}
-                  {modalContext === "deleteSociety" && (
-                    <div>
-                      <p>
-                        Are you sure you want to delete this society? This
-                        action is irreversible. All candidates will be removed
-                        and all elections will be deleted.
-                      </p>
-                      <Button
-                        renderIcon={Close}
-                        onClick={() => setModal(!modal)}
-                      >
-                        Close
-                      </Button>
-                      <Button
-                        renderIcon={PortInput}
-                        kind={"danger"}
-                        onClick={() => deleteSocietyHandler(selectedSociety!)}
-                      >
-                        Confirm
-                      </Button>
-                    </div>
-                  )}
-                  {modalContext === "editSociety" && (
-                    <div>
-                      <form
-                        aria-label={"Edit Society Form"}
-                        ref={editSocietiesForm}
-                        onSubmit={editSocietySubmit}
-                      >
-                        <h3>Editing society</h3>
-                        <TextInput
-                          id={"societyName"}
-                          labelText={"Society Name"}
-                          type={"text"}
-                          name={"name"}
-                          defaultValue={
-                            ownedSocieties?.find(
-                              society => society.societyId === editSocieties
-                            )?.name
-                          }
-                        />
-                        <TextArea
-                          className={styles.textArea}
-                          id={"societyDescription"}
-                          labelText={"Society Description"}
-                          type={"text"}
-                          name={"description"}
-                          defaultValue={
-                            ownedSocieties?.find(
-                              society => society.societyId === editSocieties
-                            )?.description
-                          }
-                        />
-                        <FileUploader
-                          buttonLabel={"Upload a picture"}
-                          filenameStatus={"complete"}
-                          onChange={handleFileUpload}
-                          className={styles.fileUploader}
-                          accept={[".jpg", ".png", ".jpeg"]}
-                        >
-                          Upload Profile Picture
-                        </FileUploader>
-                        <p>JPG, PNG, JPEG files only</p>
-                        <Button
-                          renderIcon={Close}
-                          kind={"danger"}
-                          onClick={() => setModal(!modal)}
-                        >
-                          Close
-                        </Button>
-                        <Button
-                          type="submit"
-                          renderIcon={PortInput}
-                          kind={"primary"}
-                          onSubmit={() => editSocietyHandler(selectedSociety!)}
-                        >
-                          Confirm
-                        </Button>
-                      </form>
-                    </div>
-                  )}
-                </ElectionModal>
               </div>
             </>,
             <>
