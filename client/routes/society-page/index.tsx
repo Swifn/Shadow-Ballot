@@ -324,7 +324,10 @@ export const SocietyPage = () => {
               )}
               {isSocietyMember === false && (
                 <Button
-                  onClick={() => leaveSociety(sid.sid ?? "")}
+                  onClick={() => {
+                    setModal(!modal);
+                    setModalContext("leaveSociety");
+                  }}
                   renderIcon={PortInput}
                   kind={"danger"}
                 >
@@ -448,6 +451,27 @@ export const SocietyPage = () => {
                 renderIcon={PortInput}
                 kind={"danger"}
                 onClick={() => deleteSocietyHandler(sid)}
+              >
+                Confirm
+              </Button>
+            </div>
+          )}
+          {modalContext === "leaveSociety" && (
+            <div>
+              <p>
+                You are about to leave this society. You can join back at any
+                time from the society's page.
+              </p>
+              <Button renderIcon={Close} onClick={() => setModal(!modal)}>
+                Close
+              </Button>
+              <Button
+                renderIcon={PortInput}
+                kind={"danger"}
+                onClick={() => {
+                  setModal(!modal);
+                  leaveSociety(sid.sid ?? "");
+                }}
               >
                 Confirm
               </Button>

@@ -10,7 +10,7 @@ import {
 } from "@carbon/react";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Add, PortInput, Close, Exit } from "@carbon/icons-react";
+import { Add, PortInput, Close } from "@carbon/icons-react";
 import { ElectionModal } from "../../components/election-modal";
 import { get, post } from "../../utils/fetch";
 import { Cards } from "../../components/cards";
@@ -33,23 +33,15 @@ interface SocietySubject {
 export const Society = () => {
   const navigate = useNavigate();
   const [modal, setModal] = useState(false);
-  // const [modalContext, setModalContext] = useState<string | null>(null);
   const form = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [formEnabled, setFormEnabled] = useState(true);
-  // const [selectedLeaveSociety, setSelectedLeaveSociety] = useState<
-  //   number | null
-  // >(null);
   const [selectedSubject, setSelectedSubject] = useState<number>(0);
   const [getAllResult, setGetAllResult] = useState<Society[] | null>([]);
   const [joinedSocieties, setJoinedSocieties] = useState<Society[] | null>([]);
-  // const [leaveSocieties, setLeaveSocieties] = useState<number | null>(null);
   const [joinSearch, setJoinSearch] = useState("");
-  // const [leaveSearch, setLeaveSearch] = useState("");
-  // const [filteredLeaveSocieties, setFilteredLeaveSocieties] = useState<
-  //   Society[]
-  // >([]);
+
   const [filteredJoinSocieties, setFilteredJoinSocieties] = useState<Society[]>(
     []
   );
@@ -58,13 +50,6 @@ export const Society = () => {
   );
   const voterId = localStorage.getItem("USER_ID");
 
-  // const leaveSocietyHandler = async (societyId: number) => {
-  //   setLeaveSocieties(societyId);
-  // };
-
-  // const searchLeaveHandler = event => {
-  //   setLeaveSearch(event.target.value);
-  // };
   const searchJoinHandler = event => {
     setJoinSearch(event.target.value);
   };
@@ -80,20 +65,6 @@ export const Society = () => {
     setSelectedSubject(subjectId!);
   };
 
-  // useEffect(() => {
-  //   const filterLeaveSocieties = () => {
-  //     if (leaveSearch) {
-  //       const filtered = joinedSocieties!.filter(society =>
-  //         society.name.toLowerCase().includes(leaveSearch.toLowerCase())
-  //       );
-  //       setFilteredLeaveSocieties(filtered);
-  //     } else {
-  //       setFilteredLeaveSocieties(joinedSocieties!);
-  //     }
-  //   };
-  //   filterLeaveSocieties();
-  // }, [leaveSearch, getAllResult]);
-
   useEffect(() => {
     if (!getAllResult || !joinedSocieties) return;
     const notJoinedSocieties = getAllResult.filter(
@@ -107,27 +78,6 @@ export const Society = () => {
     );
     setFilteredJoinSocieties(filteredSocieties);
   }, [joinSearch, getAllResult, joinedSocieties]);
-
-  // const leaveSociety = async () => {
-  //   if (leaveSocieties !== null) {
-  //     try {
-  //       const response = await post(
-  //         `society/leave/${leaveSocieties}/${voterId}`
-  //       );
-  //       await setStateBasedOnResponse(response);
-  //       const updatedSocieties = joinedSocieties!.filter(
-  //         society => society.societyId !== leaveSocieties
-  //       );
-  //       setFilteredLeaveSocieties(updatedSocieties);
-  //       setSelectedLeaveSociety(null);
-  //     } catch (error) {
-  //       console.log(error);
-  //     } finally {
-  //       await fetchData();
-  //     }
-  //   }
-  //   setLeaveSocieties(null);
-  // };
 
   const fetchData = async () => {
     try {
@@ -198,16 +148,6 @@ export const Society = () => {
     })();
   }, []);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       await leaveSociety();
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   })();
-  // }, [leaveSocieties, voterId, joinedSocieties]);
-
   const toggleModal = () => {
     setModal(!modal);
   };
@@ -256,7 +196,6 @@ export const Society = () => {
                   renderIcon={Add}
                   onClick={() => {
                     toggleModal();
-                    // setModalContext("createSociety");
                   }}
                 >
                   Create
@@ -293,67 +232,8 @@ export const Society = () => {
                 </div>
               </div>
             </div>
-
-            {/*<div className={styles.content}>*/}
-            {/*  <div className={styles.header}>*/}
-            {/*    <h2>Leave a society</h2>*/}
-            {/*  </div>*/}
-            {/*  <Search*/}
-            {/*    labelText={"Search to leave society"}*/}
-            {/*    value={leaveSearch}*/}
-            {/*    onChange={searchLeaveHandler}*/}
-            {/*    className={styles.search}*/}
-            {/*    placeholder={"Search to leave society"}*/}
-            {/*  />*/}
-            {/*  <div className={styles.leave}>*/}
-            {/*    <div className={styles.cardContainer}>*/}
-            {/*      {filteredLeaveSocieties &&*/}
-            {/*        filteredLeaveSocieties.map(society => (*/}
-            {/*          <Cards*/}
-            {/*            name={society.name}*/}
-            {/*            key={society.societyId}*/}
-            {/*            societySubject={society.societySubject}*/}
-            {/*            profilePicture={society.societyPicture}*/}
-            {/*          >*/}
-            {/*            <Button*/}
-            {/*              onClick={() => {*/}
-            {/*                setModal(!modal);*/}
-            {/*                setModalContext("leaveSociety");*/}
-            {/*                setSelectedLeaveSociety(society.societyId);*/}
-            {/*              }}*/}
-            {/*              renderIcon={Exit}*/}
-            {/*              kind={"danger"}*/}
-            {/*            >*/}
-            {/*              Leave*/}
-            {/*            </Button>*/}
-            {/*          </Cards>*/}
-            {/*        ))}*/}
-            {/*    </div>*/}
-            {/*  </div>*/}
-            {/*</div>*/}
           </div>
           <ElectionModal modal={modal}>
-            {/*{modalContext === "leaveSociety" && (*/}
-            {/*  <div>*/}
-            {/*    <p>*/}
-            {/*      You are about to leave this society. You can join back at any*/}
-            {/*      time from the societies page.*/}
-            {/*    </p>*/}
-            {/*    <Button renderIcon={Close} onClick={() => setModal(!modal)}>*/}
-            {/*      Close*/}
-            {/*    </Button>*/}
-            {/*    <Button*/}
-            {/*      renderIcon={PortInput}*/}
-            {/*      kind={"danger"}*/}
-            {/*      onClick={() => {*/}
-            {/*        setModal(!modal);*/}
-            {/*        leaveSocietyHandler(selectedLeaveSociety!);*/}
-            {/*      }}*/}
-            {/*    >*/}
-            {/*      Confirm*/}
-            {/*    </Button>*/}
-            {/*  </div>*/}
-            {/*)}*/}
             {modal && (
               <div>
                 <h1 className={styles.modalHeader}>Create Society</h1>
