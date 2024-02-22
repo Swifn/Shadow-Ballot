@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import {
   Election,
   ElectionCandidates,
+  FileStorage,
   Society,
+  Vote,
   VoterSociety,
 } from "../models/index.js";
 
@@ -19,6 +21,17 @@ import * as HTTP from "../utils/magicNumbers.js";
 import cron from "node-cron";
 import { Op } from "sequelize";
 import { isPast, isFuture } from "date-fns";
+import { FileRequest } from "../middleware/jwt.middleware.js";
+import { v4 as uuid } from "uuid";
+
+interface Election {
+  electionId: number;
+  name: string;
+  description: string;
+  ElectionPicture?: {
+    path: string;
+  };
+}
 
 cron.schedule("* * * * *", async () => {
   try {
@@ -29,6 +42,7 @@ cron.schedule("* * * * *", async () => {
         end: {
           [Op.lte]: new Date(), // Find elections that should have ended by now.
         },
+
         electionStatus: true,
       },
     });
@@ -118,9 +132,10 @@ export const createElection = async (req: Request, res: Response) => {
       end: end,
     });
 
-    return res
-      .status(HTTP.STATUS_CREATED)
-      .send({ message: `${name} election has been created`, newElection });
+    return res.status(HTTP.STATUS_CREATED).send({
+      message: `${name} election has been created`,
+      newElection: newElection.electionId,
+    });
   } catch (error) {
     console.log(error);
     return res
@@ -130,7 +145,7 @@ export const createElection = async (req: Request, res: Response) => {
 };
 
 export const addCandidate = async (req: Request, res: Response) => {
-  const electionId = req.params.electionId;
+  const electionId = parseInt(req.params.electionId);
   const { candidateAlias, candidateName, description } = req.body;
   try {
     if (await doesElectionExist(electionId)) {
@@ -198,6 +213,7 @@ export const getElectionWithCandidates = async (
         .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
         .send({ message: "Election not found" });
     }
+
     return res.status(HTTP.STATUS_OK).send(election);
   } catch (error) {
     console.log(error);
@@ -209,7 +225,7 @@ export const getElectionWithCandidates = async (
 
 //TODO: Add a feature where the election can only be opened once to stop changes?
 export const openElection = async (req: Request, res: Response) => {
-  const electionId = req.params.electionId;
+  const electionId = parseInt(req.params.electionId);
 
   const electionName = await Election.findOne({
     where: {
@@ -254,7 +270,7 @@ export const openElection = async (req: Request, res: Response) => {
 };
 
 export const closeElection = async (req: Request, res: Response) => {
-  const electionId = req.params.electionId;
+  const electionId = parseInt(req.params.electionId);
 
   const electionName = await Election.findOne({
     where: {
@@ -298,6 +314,78 @@ export const closeElection = async (req: Request, res: Response) => {
   }
 };
 
+export const getFinishedElections = async (req: Request, res: Response) => {
+  try {
+    const elections = await Election.findAll({
+      where: {
+        end: {
+          [Op.lte]: new Date(), // Find elections that should have ended by now.
+        },
+        electionStatus: false,
+      },
+      attributes: {
+        exclude: [
+          "electionStatus",
+          "societyOwnerId",
+          "kValue",
+          "start",
+          "end",
+          "createdAt",
+          "updatedAt",
+        ],
+      },
+    });
+
+    return res.status(HTTP.STATUS_OK).send({ elections });
+  } catch (error) {
+    console.error("Error closing elections:", error);
+  }
+};
+
+export const getFinishedVotes = async (req: Request, res: Response) => {
+  const electionId = parseInt(req.params.electionId);
+  try {
+    const candidates = await ElectionCandidates.findAll({
+      where: {
+        electionId: electionId,
+      },
+      attributes: ["candidateId", "candidateName", "candidateAlias"],
+    });
+
+    const votes = await Vote.findAll({
+      where: { electionId },
+      attributes: ["candidateId"],
+    });
+
+    const totalVotes = votes.length;
+    const voteCounts = {};
+
+    for (let i = 0; i < totalVotes; i++) {
+      const vote = votes[i];
+      if (!voteCounts[vote.candidateId]) {
+        voteCounts[vote.candidateId] = 0;
+      }
+      voteCounts[vote.candidateId]++;
+    }
+
+    const results = candidates.map(candidate => {
+      return {
+        candidateId: candidate.candidateId,
+        candidateName: candidate.candidateName,
+        candidateAlias: candidate.candidateAlias,
+        votes: voteCounts[candidate.candidateId] || 0,
+      };
+    });
+
+    const sortedResults = results.sort((a, b) => b.votes - a.votes);
+    const winner = sortedResults[0];
+
+    return res.status(HTTP.STATUS_OK).send({ winner });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const getOwnedElections = async (req: Request, res: Response) => {
   const voterId = req.params.voterId;
   try {
@@ -319,11 +407,32 @@ export const getOwnedElections = async (req: Request, res: Response) => {
 };
 export const getAllElections = async (req: Request, res: Response) => {
   try {
-    const elections = await Election.findAll({
+    const unmodifiedElections = await Election.findAll({
       attributes: {
         exclude: ["societyOwnerId", "createdAt", "updatedAt"],
       },
+      include: [
+        {
+          model: FileStorage,
+          attributes: ["path"],
+          as: "ElectionPicture",
+        },
+      ],
     });
+
+    const elections = unmodifiedElections.map(election => {
+      const typedElection = election as Election & {
+        ElectionPicture?: { path: string };
+      };
+
+      return {
+        electionId: typedElection.electionId,
+        name: typedElection.name,
+        description: typedElection.description,
+        electionPicture: typedElection.ElectionPicture?.path,
+      };
+    });
+
     return res.status(HTTP.STATUS_OK).send({ elections });
   } catch (error) {
     console.log(error);
@@ -347,6 +456,13 @@ export const getSocietyElections = async (req: Request, res: Response) => {
               attributes: {
                 exclude: ["societyOwnerId", "createdAt", "updatedAt"],
               },
+              include: [
+                {
+                  model: FileStorage,
+                  attributes: ["path"],
+                  as: "ElectionPicture",
+                },
+              ],
             },
           ],
           attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
@@ -361,5 +477,85 @@ export const getSocietyElections = async (req: Request, res: Response) => {
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
       .send({ message: "Unable to fetch society elections" });
+  }
+};
+
+export const uploadElectionPicture = async (
+  req: FileRequest,
+  res: Response
+) => {
+  const electionId = req.params.electionId;
+  try {
+    if (!req.files?.file) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "Please upload a file" });
+    }
+
+    const election = await Election.findOne({
+      where: {
+        electionId: electionId,
+      },
+    });
+    if (!election) {
+      return res
+        .status(HTTP.STATUS_NOT_FOUND)
+        .send({ message: "This election does not exist" });
+    }
+
+    const electionPicture = await election.getElectionPicture();
+    if (electionPicture) {
+      electionPicture.destroy();
+    }
+
+    const originalName = req.files.file.name;
+    const originalExtension = originalName.substring(
+      originalName.lastIndexOf(".")
+    );
+
+    const path = `client/assets/uploaded/${uuid()}${originalExtension}`;
+    await req.files.file.mv(path);
+
+    const fileToStore = {
+      name: "election_picture",
+      path: path,
+    };
+    await election.createElectionPicture(fileToStore as any);
+
+    return res
+      .status(HTTP.STATUS_OK)
+      .send({ message: "Election picture uploaded" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to upload Election picture" });
+  }
+};
+
+export const getElectionPicture = async (req: Request, res: Response) => {
+  const electionId = req.params.electionId;
+  try {
+    const election = await Election.findByPk(electionId);
+    if (!election) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "This society does not exist" });
+    }
+
+    const electionPicture = await election.getElectionPicture();
+    let path;
+    if (electionPicture) {
+      path = electionPicture.path;
+    } else {
+      path = "client/assets/bg.jpg";
+    }
+
+    return res.status(HTTP.STATUS_OK).send({ electionPicture: path });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get election picture" });
   }
 };

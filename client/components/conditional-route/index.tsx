@@ -5,7 +5,7 @@ import { Routes } from "../../routes";
 
 export const AuthenticatedRoute = ({ children }: { children: JSX.Element }) => {
   const voter = useRecoilValue(userState);
-  return voter ? children : <Navigate to={Routes.LANDING()} replace />;
+  return voter ? children : <Navigate to={Routes.AUTH_SIGN_IN()} replace />;
 };
 
 export const AnonymousRoute = ({ children }: { children: JSX.Element }) => {
@@ -15,6 +15,6 @@ export const AnonymousRoute = ({ children }: { children: JSX.Element }) => {
 
 export const AdminRoute = ({ children }: { children: JSX.Element }) => {
   const voter = useRecoilValue(userState);
-  if (!voter) return <Navigate to={Routes.LANDING()} replace />;
+  if (!voter) return <Navigate to={Routes.AUTH_SIGN_IN()} replace />;
   return voter.admin ? children : <Navigate to={Routes.LANDING()} replace />;
 };

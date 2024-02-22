@@ -11,6 +11,7 @@ import { sequelize } from "./models/index.js";
 import cors from "cors";
 import { seed } from "./seeders/index.js";
 import { SocietySubject } from "./models/index.js";
+import { WebSocketServer } from "ws";
 
 const app = express();
 app.use(fileUpload());
@@ -24,7 +25,7 @@ app.use("/society", societyRouter);
 app.use("/voter", voterRouter);
 app.use("/vote", voteRouter);
 
-app.get("/society-subject", SocietySubject);
+// app.get("/society-subject", SocietySubject);
 
 const server = app.listen(Config.PORT, async () => {
   await sequelize.sync();
@@ -33,4 +34,14 @@ const server = app.listen(Config.PORT, async () => {
     await seed();
   }
   console.log(`App running in port ${Config.PORT}`);
+});
+
+const ws = new WebSocketServer({ server });
+
+ws.on("connection", ws => {
+  ws.on("message", message => {
+    console.log("received: %s", message);
+  });
+
+  ws.send("Connection established");
 });

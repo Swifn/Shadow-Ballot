@@ -24,7 +24,5 @@ export const getVoter = async (req: Request, res: Response) => {
     return res.status(HTTP.STATUS_NOT_FOUND).send({ error: "No voter found" });
   }
 
-  return res
-    .status(HTTP.STATUS_OK)
-    .send({ ...voter.dataValues, admin: req.admin });
+  return res.status(HTTP.STATUS_OK).send({ ...voter.dataValues });
 };

@@ -103,8 +103,18 @@ export const SocietyPage = () => {
     formData.append("endTimeZone", endTimeZone);
 
     const body = Object.fromEntries(formData.entries());
-    const response = await post("election/create", body);
-    // await getElectionData(voterId);
+    const response = await post("election/create", body).then(res =>
+      res.json()
+    );
+
+    const fileResponse = await postFile(
+      `election/upload-election-picture/${response.newElection}`,
+      picture
+    );
+    if (!fileResponse.ok) {
+      alert("Failed to upload file");
+    }
+
     await setStateBasedOnResponse(response);
     setModal(!modal);
   };
@@ -446,6 +456,15 @@ export const SocietyPage = () => {
                   <SelectItem value="UTC" text="UTC" />
                 </TimePickerSelect>
               </TimePicker>
+              <FileUploader
+                buttonLabel={"Upload a picture"}
+                filenameStatus={"complete"}
+                onChange={handleFileUpload}
+                className={styles.fileUploader}
+                accept={[".jpg", ".png", ".jpeg"]}
+              >
+                Upload Profile Picture
+              </FileUploader>
               <Button
                 onClick={() => setModal(!modal)}
                 renderIcon={Close}

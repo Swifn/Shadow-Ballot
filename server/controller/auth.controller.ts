@@ -5,6 +5,7 @@ import { Config } from "../configs/config.js";
 import { Voter } from "../models/index.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import CryptoJS from "crypto-js";
+import { Request, Response } from "express";
 
 export const aesEncryption = (email: string): string => {
   const key = CryptoJS.enc.Utf8.parse(AuthConfig.AES_SECRET_KEY);
@@ -17,7 +18,7 @@ export const aesEncryption = (email: string): string => {
   return cipher.toString();
 };
 
-export const signUp = async (req, res) => {
+export const signUp = async (req: Request, res: Response) => {
   const { email, password1, password2 } = req.body;
   if (!email && !password1 && !password2) {
     return res
@@ -69,7 +70,7 @@ export const signUp = async (req, res) => {
   }
 };
 
-export const signIn = async (req, res) => {
+export const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   if (!email && !password) {

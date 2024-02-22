@@ -19,6 +19,10 @@ interface Election {
   name: string;
   societyId: number;
   description: string;
+  electionPicture?: string;
+  ElectionPicture?: {
+    path: string;
+  };
 }
 
 export const Election = () => {
@@ -51,6 +55,7 @@ export const Election = () => {
         .flat()
         .sort((a, b) => a.name.localeCompare(b.name));
       setGetSocietyElections(sortedSocietyElections);
+      console.log(sortedSocietyElections);
     } catch (error) {
       console.log(`Error when retrieving all election data: ${error}`);
     }
@@ -60,10 +65,15 @@ export const Election = () => {
         const response = await get(
           `election/getElectionCandidates/${selectedElection}`
         ).then(res => res.json());
-        const sortedCandidates = response.ElectionCandidates.sort((a, b) =>
-          a.candidateName.localeCompare(b.candidateName)
-        );
-        setGetElectionCandidates(sortedCandidates);
+        if (response.ElectionCandidates.length === 0) {
+          setError("No candidates found for this election, check back later.");
+        } else {
+          const sortedCandidates = response.ElectionCandidates.sort((a, b) =>
+            a.candidateName.localeCompare(b.candidateName)
+          );
+          setGetElectionCandidates(sortedCandidates);
+          setModal(!modal);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -81,9 +91,7 @@ export const Election = () => {
   }, [voterId, selectedElection]);
 
   const viewCandidateHandler = async (electionId: number | null) => {
-    setModal(!modal);
     setSelectedElection(electionId);
-    console.log(modal);
   };
   const toggleModal = () => {
     setModal(!modal);
@@ -97,11 +105,17 @@ export const Election = () => {
           <title>Election</title>
         </Helmet>
         <div className={styles.notification}>
-          {error && <InlineNotification title={error} hideCloseButton />}
+          {error && (
+            <InlineNotification
+              kind={"info"}
+              title={error}
+              onClose={() => setError(null)}
+            />
+          )}
           {success && (
             <InlineNotification
               title={success}
-              hideCloseButton
+              onClose={() => setSuccess(null)}
               kind="success"
             />
           )}
@@ -126,6 +140,7 @@ export const Election = () => {
                         name={elections.name}
                         key={elections.electionId}
                         description={elections.description}
+                        profilePicture={elections.electionPicture}
                       >
                         <Button
                           renderIcon={View}
@@ -161,6 +176,7 @@ export const Election = () => {
                       name={electionCandidates.name}
                       key={electionCandidates.electionId}
                       description={electionCandidates.description}
+                      profilePicture={electionCandidates.ElectionPicture?.path}
                     >
                       <Button
                         renderIcon={View}

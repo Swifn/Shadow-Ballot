@@ -10,12 +10,14 @@ import { ElectionModalCards } from "../../components/modal-cards";
 import { VoteModalCards } from "../../components/vote-modal";
 import { Helmet } from "react-helmet";
 import { LiveVotes } from "../../components/live-votes";
+import { ElectionModal } from "../../components/election-modal";
 
 interface Elections {
   electionId: number;
   name: string;
   societyId: number;
   description: string;
+  ElectionPicture?: { path: string };
 }
 
 interface electionCandidates {
@@ -23,6 +25,13 @@ interface electionCandidates {
   candidateName: string;
   candidateAlias: string;
   description: string;
+}
+
+interface Winner {
+  candidateId: number;
+  candidateName: string;
+  candidateAlias: string;
+  votes?: number;
 }
 
 interface Results {
@@ -39,7 +48,11 @@ export const Vote = () => {
     []
   );
   const [getResults, setGetResults] = useState<Results[] | null>([]);
+  const [getFinishedResults, setGetFinishedResults] = useState<Winner>();
   const [getClosedElections, setGetClosedElections] = useState<
+    Elections[] | null
+  >([]);
+  const [getFinishedElections, setGetFinishedElections] = useState<
     Elections[] | null
   >([]);
   const [getElectionCandidates, setGetElectionCandidates] = useState<
@@ -51,6 +64,7 @@ export const Vote = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [modal, setModal] = useState(false);
 
   const voterId = localStorage.getItem("USER_ID");
@@ -62,7 +76,6 @@ export const Vote = () => {
   const setStateBasedOnResponse = async response => {
     const responseMessage = (await response.json()).message;
     if (response.ok) {
-      console.log(responseMessage);
       setSuccess(responseMessage);
       setError(null);
     } else {
@@ -77,6 +90,11 @@ export const Vote = () => {
         const response = await post(
           `vote/election/${selectedElection}/voter/${voterId}/candidate/${selectedCandidate}`
         );
+        if (response.ok) {
+          setInfo(
+            "Dont worry if you cant see your vote, we're utilising k-anonymity to ensure your vote is kept private."
+          );
+        }
         await setStateBasedOnResponse(response);
         setSelectedCandidate(null);
       } catch (error) {
@@ -100,10 +118,7 @@ export const Vote = () => {
       const response = await get(`vote/get-open-elections/${voterId}`).then(
         res => res.json()
       );
-      const validElections = response.openElections.filter(
-        item => item.Society !== null
-      );
-      const sortedElections = validElections
+      const sortedElections = response.openElections
         .map(openElections => openElections.Society.Elections)
         .flat()
         .sort((a, b) => a.name.localeCompare(b.name));
@@ -116,10 +131,7 @@ export const Vote = () => {
       const response = await get(`vote/get-closed-elections/${voterId}`).then(
         res => res.json()
       );
-      const validElections = response.closedElections.filter(
-        item => item.Society !== null
-      );
-      const sortedElections = validElections
+      const sortedElections = response.closedElections
         .map(closedElections => closedElections.Society.Elections)
         .flat()
         .sort((a, b) => a.name.localeCompare(b.name));
@@ -131,7 +143,7 @@ export const Vote = () => {
     if (selectedElection != null) {
       try {
         const response = await get(
-          `vote/getElectionCandidates/${selectedElection}`
+          `election/getElectionCandidates/${selectedElection}`
         ).then(res => res.json());
 
         setGetElectionCandidates(response.ElectionCandidates);
@@ -146,7 +158,26 @@ export const Vote = () => {
           res => res.json()
         );
         setGetResults(response);
-        console.log(response);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    try {
+      const response = await get(`election/get-finished-elections`).then(res =>
+        res.json()
+      );
+      setGetFinishedElections(response.elections);
+    } catch (error) {
+      console.log(error);
+    }
+
+    if (selectedElection != null) {
+      try {
+        const response = await get(`election/winner/${selectedElection}`).then(
+          res => res.json()
+        );
+        setGetFinishedResults(response.winner);
       } catch (error) {
         console.log(error);
       }
@@ -188,6 +219,13 @@ export const Vote = () => {
               title={success}
               kind="success"
             />
+          )}{" "}
+          {info && (
+            <InlineNotification
+              onClose={() => setInfo(null)}
+              title={info}
+              kind="info"
+            />
           )}
         </div>
         <div className={styles.container}>
@@ -197,15 +235,18 @@ export const Vote = () => {
                 <TabComponent
                   tabListNames={[
                     {
-                      name: "Open Elections",
+                      name: "Open Votes",
                     },
                     {
-                      name: "Closed Elections",
+                      name: "Upcoming Votes",
+                    },
+                    {
+                      name: "Finished Votes",
                     },
                   ]}
                   tabContents={[
                     <>
-                      <h1>Open Elections</h1>
+                      <h1>Open Votes</h1>
                       <div className={styles.cardContainer}>
                         {getOpenElections &&
                           getOpenElections.map(elections => (
@@ -213,6 +254,7 @@ export const Vote = () => {
                               name={elections.name}
                               key={elections.electionId}
                               description={elections.description}
+                              profilePicture={elections.ElectionPicture?.path}
                             >
                               <Button
                                 renderIcon={View}
@@ -261,7 +303,7 @@ export const Vote = () => {
                       </div>
                     </>,
                     <>
-                      <h1>Closed Elections</h1>
+                      <h1>Upcoming Votes</h1>
                       <div className={styles.cardContainer}>
                         {getClosedElections &&
                           getClosedElections.map(elections => (
@@ -269,6 +311,7 @@ export const Vote = () => {
                               name={elections.name}
                               key={elections.electionId}
                               description={elections.description}
+                              profilePicture={elections.ElectionPicture?.path}
                             >
                               <Button
                                 renderIcon={View}
@@ -294,9 +337,48 @@ export const Vote = () => {
                         </ElectionModalCards>
                       </div>
                     </>,
-                    // <>
-                    //   <h1>Participated Elections</h1>
-                    // </>,
+                    <>
+                      <h1>Finished Votes</h1>
+                      <div className={styles.cardContainer}>
+                        {getFinishedElections &&
+                          getFinishedElections.map(elections => (
+                            <Cards
+                              name={elections.name}
+                              key={elections.electionId}
+                              description={elections.description}
+                              profilePicture={elections.ElectionPicture?.path}
+                            >
+                              <Button
+                                renderIcon={View}
+                                onClick={() =>
+                                  viewCandidateHandler(elections.electionId)
+                                }
+                              >
+                                View Winner
+                              </Button>
+                            </Cards>
+                          ))}
+                        <ElectionModal modal={modal}>
+                          <h2>Winner</h2>
+                          {getFinishedResults && (
+                            <Cards
+                              name={getFinishedResults.candidateName}
+                              key={getFinishedResults.candidateId}
+                              description={getFinishedResults.candidateAlias}
+                            >
+                              {" "}
+                            </Cards>
+                          )}
+                          <Button
+                            renderIcon={Close}
+                            onClick={() => setModal(!modal)}
+                            kind={"danger"}
+                          >
+                            Close
+                          </Button>
+                        </ElectionModal>
+                      </div>
+                    </>,
                   ]}
                 />
               </Stack>

@@ -70,7 +70,11 @@ FileStorage.hasOne(Election, {
   onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
-Election.belongsTo(FileStorage, { foreignKey: "electionPicture" });
+Election.belongsTo(FileStorage, {
+  as: "ElectionPicture",
+  foreignKey: "electionPicture",
+});
+
 FileStorage.hasOne(ElectionCandidates, {
   foreignKey: "candidatePicture",
   onDelete: "SET NULL",

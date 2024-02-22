@@ -1,4 +1,5 @@
 import {
+  combineDateTime,
   doesElectionExist,
   isCandidateInElection,
   isElectionOpen,
@@ -10,15 +11,26 @@ import {
   Society,
   VoterSociety,
   ElectionCandidates,
+  FileStorage,
 } from "../models/index.js";
 import * as HTTP from "../utils/magicNumbers.js";
 
 import { Request, Response } from "express";
+import { Op } from "sequelize";
+
+interface Election {
+  electionId: number;
+  name: string;
+  description: string;
+  ElectionPicture?: {
+    path: string;
+  };
+}
 
 export const castVote = async (req: Request, res: Response) => {
-  const voterId = req.params.voterId;
-  const candidateId = req.params.candidateId;
-  const electionId = req.params.electionId;
+  const voterId = parseInt(req.params.voterId);
+  const candidateId = parseInt(req.params.candidateId);
+  const electionId = parseInt(req.params.electionId);
 
   try {
     if (await doesElectionExist(electionId)) {
@@ -66,10 +78,22 @@ export const getClosedElections = async (req: Request, res: Response) => {
           include: [
             {
               model: Election,
-              where: { electionStatus: false },
+              where: {
+                start: {
+                  [Op.gte]: new Date(),
+                },
+                electionStatus: false,
+              },
               attributes: {
                 exclude: ["societyOwnerId", "createdAt", "updatedAt"],
               },
+              include: [
+                {
+                  model: FileStorage,
+                  attributes: ["path"],
+                  as: "ElectionPicture",
+                },
+              ],
             },
           ],
           attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
@@ -77,6 +101,7 @@ export const getClosedElections = async (req: Request, res: Response) => {
       ],
       attributes: [],
     });
+
     return res.status(HTTP.STATUS_OK).send({ closedElections });
   } catch (error) {
     console.log(error);
@@ -87,6 +112,7 @@ export const getClosedElections = async (req: Request, res: Response) => {
 };
 export const getOpenElections = async (req: Request, res: Response) => {
   const voterId = req.params.voterId;
+  console.log(voterId);
   try {
     const openElections = await VoterSociety.findAll({
       where: { voterId: voterId },
@@ -100,6 +126,13 @@ export const getOpenElections = async (req: Request, res: Response) => {
               attributes: {
                 exclude: ["societyOwnerId", "createdAt", "updatedAt"],
               },
+              include: [
+                {
+                  model: FileStorage,
+                  attributes: ["path"],
+                  as: "ElectionPicture",
+                },
+              ],
             },
           ],
           attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
@@ -107,6 +140,8 @@ export const getOpenElections = async (req: Request, res: Response) => {
       ],
       attributes: [],
     });
+
+    console.log(openElections);
     return res.status(HTTP.STATUS_OK).send({ openElections });
   } catch (error) {
     console.log(error);
@@ -117,7 +152,7 @@ export const getOpenElections = async (req: Request, res: Response) => {
 };
 
 export const getElectionResults = async (req: Request, res: Response) => {
-  const electionId = req.params.electionId;
+  const electionId = parseInt(req.params.electionId);
   try {
     const election = await Election.findOne({
       where: {

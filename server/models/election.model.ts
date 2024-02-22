@@ -26,8 +26,8 @@ export class Election extends Model<
   declare description: string;
   declare electionStatus: boolean;
   declare electionPicture: ForeignKey<FileStorage["fileId"]>;
-  declare getSocietyPicture: BelongsToGetAssociationMixin<FileStorage>;
-  declare createSocietyPicture: BelongsToCreateAssociationMixin<FileStorage>;
+  declare getElectionPicture: BelongsToGetAssociationMixin<FileStorage>;
+  declare createElectionPicture: BelongsToCreateAssociationMixin<FileStorage>;
   declare kValue: number;
   declare start: Date;
   declare end: Date;

@@ -3,6 +3,7 @@ import styles from "../society/style.module.scss";
 import {
   Button,
   ComboBox,
+  FileUploader,
   InlineNotification,
   Search,
   TextArea,
@@ -12,7 +13,7 @@ import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Add, PortInput, Close } from "@carbon/icons-react";
 import { ElectionModal } from "../../components/election-modal";
-import { get, post } from "../../utils/fetch";
+import { get, post, postFile } from "../../utils/fetch";
 import { Cards } from "../../components/cards";
 import { Routes } from "../index";
 
@@ -22,7 +23,6 @@ interface Society {
   description: string;
   societySubject: string;
   societyPicture?: string;
-  path?: string;
 }
 
 interface SocietySubject {
@@ -39,6 +39,7 @@ export const Society = () => {
   const [formEnabled, setFormEnabled] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState<number>(0);
   const [joinedSocieties, setJoinedSocieties] = useState<Society[] | null>([]);
+  // const [picture, setPicture] = useState(null);
   const [search, setSearch] = useState("");
   const [filteredSocieties, setFilteredSocieties] = useState({});
   const [societiesBySubject, setSocietiesBySubject] = useState({});
@@ -51,6 +52,11 @@ export const Society = () => {
   const searchHandler = event => {
     setSearch(event.target.value);
   };
+
+  // const handleFileUpload = event => {
+  //   const file = event.target.files[0];
+  //   setPicture(file);
+  // };
 
   const viewSocietyPageHandler = async (societyId: number) => {
     navigate(Routes.SOCIETY_PAGE(societyId.toString()));
@@ -148,6 +154,15 @@ export const Society = () => {
 
     const body = Object.fromEntries(formData.entries());
     const response = await post("society/create", body);
+
+    // const fileResponse = await postFile(
+    //   `society/upload-society-picture/${response.newSociety}`,
+    //   picture
+    // );
+    // if (!fileResponse.ok) {
+    //   alert("Failed to upload file");
+    // }
+
     await setStateBasedOnResponse(response);
     await fetchData();
     setModal(!modal);
@@ -305,6 +320,15 @@ export const Society = () => {
                     type="text"
                     invalid={error !== null}
                   />
+                  {/*<FileUploader*/}
+                  {/*  buttonLabel={"Upload a picture"}*/}
+                  {/*  filenameStatus={"complete"}*/}
+                  {/*  onChange={handleFileUpload}*/}
+                  {/*  className={styles.fileUploader}*/}
+                  {/*  accept={[".jpg", ".png", ".jpeg"]}*/}
+                  {/*>*/}
+                  {/*  Upload Profile Picture*/}
+                  {/*</FileUploader>*/}
                   <div className={styles.submit}>
                     <Button
                       kind={"danger"}

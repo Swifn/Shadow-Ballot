@@ -54,8 +54,7 @@ export const createSociety = async (req: Request, res: Response) => {
       name: name,
       description: description,
       subjectId: subjectId,
-      societyPicture: req?.societyPicture,
-    });
+    } as any);
 
     return res.status(HTTP.STATUS_CREATED).send({
       message: `${name} has been created`,
@@ -97,7 +96,7 @@ export const editSociety = async (req: Request, res: Response) => {
 //TODO: implement a society owner so only they can delete their create society
 export const deleteSociety = async (req: Request, res: Response) => {
   try {
-    const societyId = req.params.societyId;
+    const societyId = parseInt(req.params.societyId);
     if (await doesSocietyExist(societyId)) {
       return res
         .status(HTTP.STATUS_BAD_REQUEST)
@@ -445,8 +444,8 @@ export const uploadSocietyPicture = async (req: FileRequest, res: Response) => {
 
 export const societyOwner = async (req: Request, res: Response) => {
   try {
-    const societyId = req.params.societyId;
-    const voterId = req.params.voterId;
+    const societyId = parseInt(req.params.societyId);
+    const voterId = parseInt(req.params.voterId);
 
     const owner = await isSocietyOwner(societyId, voterId);
 
@@ -462,8 +461,8 @@ export const societyOwner = async (req: Request, res: Response) => {
 
 export const societyMember = async (req: Request, res: Response) => {
   try {
-    const societyId = req.params.societyId;
-    const voterId = req.params.voterId;
+    const societyId = parseInt(req.params.societyId);
+    const voterId = parseInt(req.params.voterId);
 
     const inSociety = await isInSociety(societyId, voterId);
 

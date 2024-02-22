@@ -4,6 +4,4 @@ import { Request } from "express";
 // the user is authenticated - society, election, and vote controllers will use this
 export interface FileRequest extends Request {
   files: any;
-  params?: Request.params;
-  body?: Request.body;
 }
