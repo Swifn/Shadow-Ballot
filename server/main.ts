@@ -11,7 +11,7 @@ import { sequelize } from "./models/index.js";
 import cors from "cors";
 import { seed } from "./seeders/index.js";
 import { SocietySubject } from "./models/index.js";
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 
 const app = express();
 app.use(fileUpload());
@@ -38,10 +38,26 @@ const server = app.listen(Config.PORT, async () => {
 
 const ws = new WebSocketServer({ server });
 
-ws.on("connection", ws => {
-  ws.on("message", message => {
-    console.log("received: %s", message);
-  });
+const clients = new Set<WebSocket>();
 
-  ws.send("Connection established");
+ws.on("connection", socket => {
+  clients.add(socket);
+  // socket.send("Connection established");
+  socket.on("close", () => {
+    clients.delete(socket);
+  });
 });
+
+// Function to broadcast messages to all connected clients
+export const broadcastMessage = message => {
+  console.log(clients.size);
+  for (const client of clients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  }
+};
+
+// setInterval(() => {
+//   broadcastMessage("This is a broadcast message to all clients.");
+// }, 5000);

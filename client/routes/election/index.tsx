@@ -55,7 +55,6 @@ export const Election = () => {
         .flat()
         .sort((a, b) => a.name.localeCompare(b.name));
       setGetSocietyElections(sortedSocietyElections);
-      console.log(sortedSocietyElections);
     } catch (error) {
       console.log(`Error when retrieving all election data: ${error}`);
     }

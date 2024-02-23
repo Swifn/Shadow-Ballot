@@ -8,12 +8,12 @@ export const TabComponent = ({ tabListNames, tabContents }) => {
       <Tabs>
         <TabList aria-label="List of tabs" className={styles.tabList}>
           {tabListNames.map(tabNames => (
-            <Tab>{tabNames.name}</Tab>
+            <Tab key={tabNames.name}>{tabNames.name}</Tab>
           ))}
         </TabList>
         <TabPanels>
-          {tabContents.map(contents => (
-            <TabPanel>{contents}</TabPanel>
+          {tabContents.map((contents, index) => (
+            <TabPanel key={index}>{contents}</TabPanel>
           ))}
         </TabPanels>
       </Tabs>

@@ -1,5 +1,4 @@
 import {
-  combineDateTime,
   doesElectionExist,
   isCandidateInElection,
   isElectionOpen,
@@ -112,7 +111,6 @@ export const getClosedElections = async (req: Request, res: Response) => {
 };
 export const getOpenElections = async (req: Request, res: Response) => {
   const voterId = req.params.voterId;
-  console.log(voterId);
   try {
     const openElections = await VoterSociety.findAll({
       where: { voterId: voterId },
@@ -141,7 +139,6 @@ export const getOpenElections = async (req: Request, res: Response) => {
       attributes: [],
     });
 
-    console.log(openElections);
     return res.status(HTTP.STATUS_OK).send({ openElections });
   } catch (error) {
     console.log(error);

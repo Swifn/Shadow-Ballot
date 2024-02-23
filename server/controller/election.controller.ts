@@ -23,6 +23,7 @@ import { Op } from "sequelize";
 import { isPast, isFuture } from "date-fns";
 import { FileRequest } from "../middleware/jwt.middleware.js";
 import { v4 as uuid } from "uuid";
+import { broadcastMessage } from "../main.js";
 
 interface Election {
   electionId: number;
@@ -53,7 +54,7 @@ cron.schedule("* * * * *", async () => {
       if (isPast(election.end) && election.electionStatus) {
         // Use date-fns to check if the endTime is in the past.
         await election.update({ electionStatus: false });
-        console.log(`Election ${election.electionId} closed.`);
+        broadcastMessage(`Election ${election.name} has ended`);
       }
     }
   } catch (error) {
@@ -79,7 +80,7 @@ cron.schedule("* * * * *", async () => {
         !election.electionStatus
       ) {
         await election.update({ electionStatus: true });
-        console.log(`Election ${election.electionId} open.`);
+        broadcastMessage(`Election ${election.name} has opened`);
       }
     }
   } catch (error) {
