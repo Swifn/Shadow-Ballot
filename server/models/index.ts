@@ -9,6 +9,7 @@ import { init as initVote } from "./vote.model.js";
 import { init as initVoterSociety } from "./voter-society.model.js";
 import { init as initFileStorage } from "./file-storage.model.js";
 import { init as initSocietySubject } from "./society-subjects.model.js";
+import { init as initSocietyTeamMembers } from "./society-team-members.js";
 
 let db: Sequelize;
 
@@ -42,6 +43,7 @@ export const Society = initSociety(sequelize);
 export const VoterSociety = initVoterSociety(sequelize);
 export const FileStorage = initFileStorage(sequelize);
 export const SocietySubject = initSocietySubject(sequelize);
+export const SocietyTeamMembers = initSocietyTeamMembers(sequelize);
 
 export const Vote = initVote(sequelize);
 //tested
@@ -81,6 +83,20 @@ FileStorage.hasOne(ElectionCandidates, {
   onUpdate: "CASCADE",
 });
 ElectionCandidates.belongsTo(FileStorage, { foreignKey: "candidatePicture" });
+
+SocietyTeamMembers.belongsTo(FileStorage, {
+  as: "MemberPicture",
+  foreignKey: "memberPicture",
+});
+FileStorage.hasOne(SocietyTeamMembers, {
+  as: "MemberPicture",
+  foreignKey: "memberPicture",
+  onDelete: "SET NULL",
+  onUpdate: "CASCADE",
+});
+
+Society.hasMany(SocietyTeamMembers, { foreignKey: "societyId" });
+SocietyTeamMembers.belongsTo(Society, { foreignKey: "societyId" });
 
 //untested
 Election.hasMany(ElectionCandidates, { foreignKey: "electionId" });
