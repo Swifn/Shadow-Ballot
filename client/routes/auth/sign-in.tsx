@@ -66,34 +66,32 @@ export const SignIn = () => {
           ref={form}
           onSubmit={submit}
         >
-          <Stack gap={7}>
-            <TextInput
-              id="sign-in__email"
-              type="text"
-              labelText="Email"
-              name="email"
-              placeholder={Config.ORG.EMAIL_PLACEHOLDER}
-              invalid={error !== null}
-            />
-            <TextInput
-              id="sign-in__password1"
-              labelText="Password"
-              name="password"
-              type="password"
-              invalid={error !== null}
-              className={styles.inputs}
-            />
-            <div className="submit">
-              <Button
-                renderIcon={PortInput}
-                type="submit"
-                disabled={!formEnabled}
-                className={styles.button}
-              >
-                Sign in
-              </Button>
-            </div>
-          </Stack>
+          <TextInput
+            id="sign-in__email"
+            type="text"
+            labelText="Email"
+            name="email"
+            placeholder={Config.ORG.EMAIL_PLACEHOLDER}
+            invalid={error !== null}
+          />
+          <TextInput
+            id="sign-in__password1"
+            labelText="Password"
+            name="password"
+            type="password"
+            invalid={error !== null}
+            className={styles.inputs}
+          />
+          <div className="submit">
+            <Button
+              renderIcon={PortInput}
+              type="submit"
+              disabled={!formEnabled}
+              className={styles.button}
+            >
+              Sign in
+            </Button>
+          </div>
         </form>
       </div>
     </>

@@ -178,7 +178,6 @@ export const addCandidate = async (req: Request, res: Response) => {
   }
 };
 
-//TODO: Only pass required information, not entire data from ElectionCandidates table.
 export const getElectionWithCandidates = async (
   req: Request,
   res: Response
@@ -315,33 +314,32 @@ export const closeElection = async (req: Request, res: Response) => {
   }
 };
 
-export const getFinishedElections = async (req: Request, res: Response) => {
-  try {
-    const elections = await Election.findAll({
-      where: {
-        end: {
-          [Op.lte]: new Date(), // Find elections that should have ended by now.
-        },
-        electionStatus: false,
-      },
-      attributes: {
-        exclude: [
-          "electionStatus",
-          "societyOwnerId",
-          "kValue",
-          "start",
-          "end",
-          "createdAt",
-          "updatedAt",
-        ],
-      },
-    });
-
-    return res.status(HTTP.STATUS_OK).send({ elections });
-  } catch (error) {
-    console.error("Error closing elections:", error);
-  }
-};
+// export const getFinishedElections = async (req: Request, res: Response) => {
+//   try {
+//     const elections = await Election.findAll({
+//       where: {
+//         end: {
+//           [Op.lte]: new Date(),
+//         },
+//         electionStatus: false,
+//       },
+//       attributes: {
+//         exclude: [
+//           "electionStatus",
+//           "societyOwnerId",
+//           "kValue",
+//           "start",
+//           "createdAt",
+//           "updatedAt",
+//         ],
+//       },
+//     });
+//
+//     return res.status(HTTP.STATUS_OK).send({ elections });
+//   } catch (error) {
+//     console.error("Error closing elections:", error);
+//   }
+// };
 
 export const getFinishedVotes = async (req: Request, res: Response) => {
   const electionId = parseInt(req.params.electionId);

@@ -44,7 +44,7 @@ export const Nav = () => {
       render={({ isSideNavExpanded, onClickSideNavExpand }) => (
         <>
           <Header aria-label="IBM Platform Name">
-            <HeaderName prefix="AVS">[Chain]</HeaderName>
+            <HeaderName prefix="Shadow">[BALLOT]</HeaderName>
             {!user &&
               location.pathname !== Routes.AUTH_SIGN_IN() &&
               location.pathname !== Routes.AUTH_SIGN_UP() && (

@@ -105,11 +105,7 @@ export const Election = () => {
         </Helmet>
         <div className={styles.notification}>
           {error && (
-            <InlineNotification
-              kind={"info"}
-              title={error}
-              onClose={() => setError(null)}
-            />
+            <InlineNotification title={error} onClose={() => setError(null)} />
           )}
           {success && (
             <InlineNotification

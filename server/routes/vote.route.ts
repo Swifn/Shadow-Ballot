@@ -4,6 +4,7 @@ import {
   getOpenElections,
   getClosedElections,
   getElectionResults,
+  getFinishedElections,
 } from "../controller/vote.controller.js";
 
 export const voteRouter = Router();
@@ -13,6 +14,7 @@ voteRouter.post(
   castVote
 );
 
-voteRouter.get("/get-open-elections/:voterId", getOpenElections);
-voteRouter.get("/get-closed-elections/:voterId", getClosedElections);
+voteRouter.get("/get-open-elections/:societyId", getOpenElections);
+voteRouter.get("/get-closed-elections/:societyId", getClosedElections);
 voteRouter.get("/results/:electionId", getElectionResults);
+voteRouter.get("/get-finished-elections/:societyId", getFinishedElections);

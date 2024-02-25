@@ -25,11 +25,11 @@ export const Landing = () => {
     <AuthenticatedRoute>
       <div>
         <Helmet>
-          <title>AVS Chain</title>
+          <title>Shadow Ballot</title>
         </Helmet>
         <div className={styles.mainContainer}>
           <div className={styles.intro}>
-            <h1>AVS Chain</h1>
+            <h1>Shadow Ballot</h1>
             <p>
               The anonymous voting system for your university <br />
             </p>

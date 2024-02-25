@@ -15,6 +15,12 @@ import {
   editSociety,
   societyOwner,
   societyMember,
+  uploadSocietyMemberPicture,
+  getSocietyMemberPicture,
+  createSocietyTeamMember,
+  getSocietyMembers,
+  deleteSocietyMember,
+  updateSocietyMember,
 } from "../controller/society.controller.js";
 
 export const societyRouter = Router();
@@ -33,3 +39,18 @@ societyRouter.get("/get-society-by-id/:societyId", getSocietyById);
 societyRouter.get("/get-society-subject", getSocietySubjects);
 societyRouter.get("/is-society-owner/:societyId/:voterId", societyOwner);
 societyRouter.get("/is-in-society/:societyId/:voterId", societyMember);
+societyRouter.post(
+  "/create-society-member/:societyId",
+  createSocietyTeamMember
+);
+societyRouter.post(
+  "/upload-society-member-picture/:memberId",
+  uploadSocietyMemberPicture
+);
+societyRouter.get(
+  "/get-society-member-picture/:memberId",
+  getSocietyMemberPicture
+);
+societyRouter.get("/get-society-members/:societyId", getSocietyMembers);
+societyRouter.post("/delete-society-member/:memberId", deleteSocietyMember);
+societyRouter.patch("/edit-society-member/:memberId", updateSocietyMember);

@@ -67,38 +67,32 @@ export const castVote = async (req: Request, res: Response) => {
 };
 
 export const getClosedElections = async (req: Request, res: Response) => {
-  const voterId = req.params.voterId;
+  const societyId = req.params.societyId;
   try {
-    const closedElections = await VoterSociety.findAll({
-      where: { voterId: voterId },
+    const closedElections = await Society.findAll({
+      where: { societyId: societyId },
       include: [
         {
-          model: Society,
+          model: Election,
+          where: {
+            start: {
+              [Op.gte]: new Date(),
+            },
+            electionStatus: false,
+          },
+          attributes: {
+            exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+          },
           include: [
             {
-              model: Election,
-              where: {
-                start: {
-                  [Op.gte]: new Date(),
-                },
-                electionStatus: false,
-              },
-              attributes: {
-                exclude: ["societyOwnerId", "createdAt", "updatedAt"],
-              },
-              include: [
-                {
-                  model: FileStorage,
-                  attributes: ["path"],
-                  as: "ElectionPicture",
-                },
-              ],
+              model: FileStorage,
+              attributes: ["path"],
+              as: "ElectionPicture",
             },
           ],
-          attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
         },
       ],
-      attributes: [],
+      attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
     });
 
     return res.status(HTTP.STATUS_OK).send({ closedElections });
@@ -110,33 +104,27 @@ export const getClosedElections = async (req: Request, res: Response) => {
   }
 };
 export const getOpenElections = async (req: Request, res: Response) => {
-  const voterId = req.params.voterId;
+  const societyId = req.params.societyId;
   try {
-    const openElections = await VoterSociety.findAll({
-      where: { voterId: voterId },
+    const openElections = await Society.findAll({
+      where: { societyId: societyId },
       include: [
         {
-          model: Society,
+          model: Election,
+          where: { electionStatus: true },
+          attributes: {
+            exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+          },
           include: [
             {
-              model: Election,
-              where: { electionStatus: true },
-              attributes: {
-                exclude: ["societyOwnerId", "createdAt", "updatedAt"],
-              },
-              include: [
-                {
-                  model: FileStorage,
-                  attributes: ["path"],
-                  as: "ElectionPicture",
-                },
-              ],
+              model: FileStorage,
+              attributes: ["path"],
+              as: "ElectionPicture",
             },
           ],
-          attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
         },
       ],
-      attributes: [],
+      attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
     });
 
     return res.status(HTTP.STATUS_OK).send({ openElections });
@@ -145,6 +133,41 @@ export const getOpenElections = async (req: Request, res: Response) => {
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
       .send({ message: "Unable to fetch open elections" });
+  }
+};
+
+export const getFinishedElections = async (req: Request, res: Response) => {
+  const societyId = req.params.societyId;
+  try {
+    const elections = await Society.findAll({
+      where: { societyId: societyId },
+      include: [
+        {
+          model: Election,
+          where: {
+            end: {
+              [Op.lte]: new Date(),
+            },
+            electionStatus: false,
+          },
+          attributes: {
+            exclude: ["societyOwnerId", "createdAt", "updatedAt"],
+          },
+          include: [
+            {
+              model: FileStorage,
+              attributes: ["path"],
+              as: "ElectionPicture",
+            },
+          ],
+        },
+      ],
+      attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
+    });
+
+    return res.status(HTTP.STATUS_OK).send({ elections });
+  } catch (error) {
+    console.error("Error closing elections:", error);
   }
 };
 

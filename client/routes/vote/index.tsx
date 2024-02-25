@@ -11,12 +11,16 @@ import { VoteModalCards } from "../../components/vote-modal";
 import { Helmet } from "react-helmet";
 import { LiveVotes } from "../../components/live-votes";
 import { ElectionModal } from "../../components/election-modal";
+import { parseISO, format } from "date-fns";
 
 interface Elections {
   electionId: number;
   name: string;
   societyId: number;
   description: string;
+  start: string;
+  end: string;
+
   ElectionPicture?: { path: string };
 }
 
@@ -146,6 +150,13 @@ export const Vote = () => {
           `election/getElectionCandidates/${selectedElection}`
         ).then(res => res.json());
 
+        if (response.ElectionCandidates.length === 0) {
+          setError("No candidates found for this election, check back later.");
+        } else {
+          setGetElectionCandidates(response.ElectionCandidates);
+          setModal(!modal);
+        }
+
         setGetElectionCandidates(response.ElectionCandidates);
       } catch (error) {
         console.log(error);
@@ -167,6 +178,7 @@ export const Vote = () => {
       const response = await get(`election/get-finished-elections`).then(res =>
         res.json()
       );
+      console.log(response);
       setGetFinishedElections(response.elections);
     } catch (error) {
       console.log(error);
@@ -195,7 +207,6 @@ export const Vote = () => {
   }, [voterId, selectedElection]);
 
   const viewCandidateHandler = async (electionId: number | null) => {
-    setModal(!modal);
     setSelectedElection(electionId);
   };
 
@@ -256,6 +267,11 @@ export const Vote = () => {
                               description={elections.description}
                               profilePicture={elections.ElectionPicture?.path}
                             >
+                              <br />
+                              <p>
+                                This election ends: {""}
+                                {format(parseISO(elections.end), "PPPP, p")}
+                              </p>
                               <Button
                                 renderIcon={View}
                                 onClick={() =>
@@ -313,6 +329,16 @@ export const Vote = () => {
                               description={elections.description}
                               profilePicture={elections.ElectionPicture?.path}
                             >
+                              <br />
+                              {/*<p>*/}
+                              {/*  This election start: {""}*/}
+                              {/*  {format(parseISO(elections.start), "PPPP, p")}*/}
+                              {/*</p>*/}
+                              {/*<br />*/}
+                              {/*<p>*/}
+                              {/*  This election ends: {""}*/}
+                              {/*  {format(parseISO(elections.end), "PPPP, p")}*/}
+                              {/*</p>*/}
                               <Button
                                 renderIcon={View}
                                 onClick={() =>
@@ -348,6 +374,11 @@ export const Vote = () => {
                               description={elections.description}
                               profilePicture={elections.ElectionPicture?.path}
                             >
+                              <br />
+                              <p>
+                                This election ended: {""}
+                                {format(parseISO(elections.end), "PPPP, p")}
+                              </p>
                               <Button
                                 renderIcon={View}
                                 onClick={() =>

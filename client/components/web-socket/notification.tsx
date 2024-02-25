@@ -29,7 +29,6 @@ export const Notification = () => {
               kind={"info"}
               title={notification}
               onClose={event => {
-                console.log(event);
                 // setNotification(notification => notification.filter());
               }}
             />

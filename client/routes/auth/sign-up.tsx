@@ -66,43 +66,41 @@ export const SignUp = () => {
         className={styles.form}
         onSubmit={submit}
       >
-        <Stack gap={7}>
-          <TextInput
-            id="sign-in__email"
-            type="text"
-            labelText="Email"
-            name="email"
-            placeholder={Config.ORG.EMAIL_PLACEHOLDER}
-            invalid={error !== null}
-          />
-          <TextInput
-            id="sign-in__password1"
-            labelText="Password"
-            type={"password"}
-            name="password1"
-            ref={passwords[0]}
-            invalid={error !== null}
-          />
-          <TextInput
-            id="sign-in__password2"
-            labelText="Re-enter password"
-            type={"password"}
-            name="password2"
-            ref={passwords[1]}
-            invalid={error !== null}
-          />
+        <TextInput
+          id="sign-in__email"
+          type="text"
+          labelText="Email"
+          name="email"
+          placeholder={Config.ORG.EMAIL_PLACEHOLDER}
+          invalid={error !== null}
+        />
+        <TextInput
+          id="sign-in__password1"
+          labelText="Password"
+          type={"password"}
+          name="password1"
+          ref={passwords[0]}
+          invalid={error !== null}
+        />
+        <TextInput
+          id="sign-in__password2"
+          labelText="Re-enter password"
+          type={"password"}
+          name="password2"
+          ref={passwords[1]}
+          invalid={error !== null}
+        />
 
-          <div className="submit">
-            <Button
-              renderIcon={PortInput}
-              type="submit"
-              disabled={!formEnabled}
-              className={styles.button}
-            >
-              Submit
-            </Button>
-          </div>
-        </Stack>
+        <div className="submit">
+          <Button
+            renderIcon={PortInput}
+            type="submit"
+            disabled={!formEnabled}
+            className={styles.button}
+          >
+            Submit
+          </Button>
+        </div>
       </form>
     </>
   );

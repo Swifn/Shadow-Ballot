@@ -1,8 +1,8 @@
 export const Config = {
   APP: {
-    NAME: "AVS Chain",
+    NAME: "Shadow Ballot",
     LOGO: "",
-    URLS: ["https://avschain.bham.team", "https://aib924.bham.team"],
+    URLS: ["https://shadowballot.bham.team", "https://aib924.bham.team"],
   },
   ORG: {
     NAME: "The University of Birmingham",

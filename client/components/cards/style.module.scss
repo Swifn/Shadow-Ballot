@@ -5,7 +5,7 @@
 }
 
 .card{
-  width: 275px;
+  width: 260px;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
@@ -32,9 +32,14 @@
 
 .cardContent Button {
   margin-top: 16px;
-  margin-right: 16px;
-  margin-left: 16px;
+  justify-content: center;
   min-width: 200px;
   border-radius: 8px;
+}
+
+.society{
+  padding-left: 16px;
+  display: flex;
+  justify-content: start;
 }
 

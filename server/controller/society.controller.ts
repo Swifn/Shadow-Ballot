@@ -4,6 +4,8 @@ import {
   VoterSociety,
   SocietySubject,
   FileStorage,
+  Election,
+  SocietyTeamMembers,
 } from "../models/index.js";
 import {
   isInSociety,
@@ -342,7 +344,32 @@ export const getSocietyById = async (req: Request, res: Response) => {
       ],
     });
 
-    return res.status(HTTP.STATUS_OK).send({ society });
+    const totalMembers = await VoterSociety.count({
+      where: {
+        societyId: id,
+      },
+    });
+
+    const totalElections = await Election.count({
+      where: {
+        societyId: id,
+      },
+    });
+
+    const totalTeamMembers = await SocietyTeamMembers.count({
+      where: {
+        societyId: id,
+      },
+    });
+
+    const response = {
+      society,
+      totalMembers,
+      totalElections,
+      totalTeamMembers,
+    };
+
+    return res.status(HTTP.STATUS_OK).send({ response });
   } catch (error) {
     console.log(error);
     return res
@@ -366,7 +393,7 @@ export const getSocietySubjects = async (req: Request, res: Response) => {
 };
 
 export const getSocietyPicture = async (req: Request, res: Response) => {
-  const societyId = req.params.societyId;
+  const societyId = parseInt(req.params.societyId);
   try {
     const society = await Society.findByPk(societyId);
     if (!society) {
@@ -393,7 +420,7 @@ export const getSocietyPicture = async (req: Request, res: Response) => {
 };
 
 export const uploadSocietyPicture = async (req: FileRequest, res: Response) => {
-  const societyId = req.params.societyId;
+  const societyId = parseInt(req.params.societyId);
   try {
     if (!req.files?.file) {
       return res
@@ -476,5 +503,196 @@ export const societyMember = async (req: Request, res: Response) => {
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
       .send({ message: "Unable to check if in society" });
+  }
+};
+
+export const createSocietyTeamMember = async (req: Request, res: Response) => {
+  const societyId = parseInt(req.params.societyId);
+  try {
+    const member = await SocietyTeamMembers.create({
+      societyId: societyId,
+      name: req.body.name,
+      alias: req.body.alias,
+      role: req.body.role,
+    });
+
+    return res
+      .status(HTTP.STATUS_CREATED)
+      .send({ message: "Member created", member: member.memberId });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to create society member" });
+  }
+};
+
+export const getSocietyMembers = async (req: Request, res: Response) => {
+  const societyId = parseInt(req.params.societyId);
+  try {
+    const members = await SocietyTeamMembers.findAll({
+      where: {
+        societyId: societyId,
+      },
+      attributes: {
+        exclude: ["societyId", "createdAt", "updatedAt"],
+      },
+      include: [
+        {
+          model: FileStorage,
+          attributes: ["path"],
+          as: "MemberPicture",
+        },
+      ],
+    });
+
+    return res.status(HTTP.STATUS_OK).send({ members });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get society members" });
+  }
+};
+
+export const getSocietyMemberPicture = async (req: Request, res: Response) => {
+  const memberId = parseInt(req.params.memberId);
+  try {
+    const members = await SocietyTeamMembers.findByPk(memberId);
+    if (!members) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "This member does not exist" });
+    }
+
+    const memberPicture = await members.getMemberPicture();
+    let path;
+    if (memberPicture) {
+      path = memberPicture.path;
+    } else {
+      path = "client/assets/defaultMemberImage.jpeg";
+    }
+
+    return res.status(HTTP.STATUS_OK).send({ memberPicture: path });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to get member picture" });
+  }
+};
+
+export const uploadSocietyMemberPicture = async (
+  req: FileRequest,
+  res: Response
+) => {
+  const memberId = parseInt(req.params.memberId);
+  try {
+    if (!req.files?.file) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "Please upload a file" });
+    }
+
+    const member = await SocietyTeamMembers.findOne({
+      where: {
+        memberId: memberId,
+      },
+    });
+    if (!member) {
+      return res
+        .status(HTTP.STATUS_NOT_FOUND)
+        .send({ message: "This member does not exist" });
+    }
+
+    const memberPicture = await member.getMemberPicture();
+    if (memberPicture) {
+      memberPicture.destroy();
+    }
+
+    const originalName = req.files.file.name;
+    const originalExtension = originalName.substring(
+      originalName.lastIndexOf(".")
+    );
+
+    const path = `client/assets/uploaded/${uuid()}${originalExtension}`;
+    await req.files.file.mv(path);
+
+    const fileToStore = {
+      name: "member_picture",
+      path: path,
+    };
+    await member.createMemberPicture(fileToStore as any);
+
+    return res
+      .status(HTTP.STATUS_OK)
+      .send({ message: "Member picture uploaded" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to upload member picture" });
+  }
+};
+
+export const deleteSocietyMember = async (req: Request, res: Response) => {
+  const memberId = parseInt(req.params.memberId);
+  try {
+    const member = await SocietyTeamMembers.findByPk(memberId);
+    if (!member) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "This member does not exist" });
+    }
+
+    const hasMemberBeenDeleted =
+      (await SocietyTeamMembers.destroy({
+        where: {
+          memberId: memberId,
+        },
+      })) === 1;
+    if (hasMemberBeenDeleted) {
+      return res
+        .status(HTTP.STATUS_OK)
+        .send({ message: "Member has been deleted" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to delete member" });
+  }
+};
+
+export const updateSocietyMember = async (req: Request, res: Response) => {
+  const memberId = parseInt(req.params.memberId);
+  try {
+    const member = await SocietyTeamMembers.findByPk(memberId);
+    if (!member) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "This member does not exist" });
+    }
+
+    await SocietyTeamMembers.update(
+      {
+        name: req.body?.name,
+        alias: req.body?.alias,
+        role: req.body?.role,
+      },
+      {
+        where: {
+          memberId: memberId,
+        },
+      }
+    );
+    return res
+      .status(HTTP.STATUS_OK)
+      .send({ message: "Member has been updated" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to update member" });
   }
 };
