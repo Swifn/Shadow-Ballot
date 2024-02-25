@@ -30,6 +30,7 @@ import { TabComponent } from "../../components/tabs";
 import { ElectionModalCards } from "../../components/modal-cards";
 import { VoteModalCards } from "../../components/vote-modal";
 import { LiveVotes } from "../../components/live-votes";
+import { parseISO, format } from "date-fns";
 
 interface Society {
   society: {
@@ -325,6 +326,7 @@ export const SocietyPage = () => {
         ).then(res => res.json());
 
         if (response.ElectionCandidates.length === 0) {
+          setSelectedElection(null);
           setError("No candidates found for this election, check back later.");
         } else {
           setGetElectionCandidates(response.ElectionCandidates);
@@ -377,6 +379,8 @@ export const SocietyPage = () => {
       const response = await get(`vote/get-finished-elections/${sid.sid}`).then(
         res => res.json()
       );
+      setGetFinishedElections(response.elections);
+      console.log("finsihed elections", response.elections);
     } catch (error) {
       console.log(error);
     }
@@ -931,10 +935,10 @@ export const SocietyPage = () => {
                         profilePicture={elections.ElectionPicture?.path}
                       >
                         <br />
-                        {/*<p>*/}
-                        {/*  This election ends: {""}*/}
-                        {/*  {format(parseISO(elections.end), "PPPP, p")}*/}
-                        {/*</p>*/}
+                        <p>
+                          This election ends: {""}
+                          {format(parseISO(elections.end), "PPPP, p")}
+                        </p>
                         <Button
                           renderIcon={View}
                           onClick={() =>
@@ -992,15 +996,15 @@ export const SocietyPage = () => {
                         profilePicture={elections.ElectionPicture?.path}
                       >
                         <br />
-                        {/*<p>*/}
-                        {/*  This election start: {""}*/}
-                        {/*  {format(parseISO(elections?.start), "PPPP, p")}*/}
-                        {/*</p>*/}
-                        {/*<br />*/}
-                        {/*<p>*/}
-                        {/*  This election ends: {""}*/}
-                        {/*  {format(parseISO(elections?.end), "PPPP, p")}*/}
-                        {/*</p>*/}
+                        <p>
+                          This election start: {""}
+                          {format(parseISO(elections?.start), "PPPP, p")}
+                        </p>
+                        <br />
+                        <p>
+                          This election ends: {""}
+                          {format(parseISO(elections?.end), "PPPP, p")}
+                        </p>
                         <Button
                           renderIcon={View}
                           onClick={() =>
@@ -1037,10 +1041,10 @@ export const SocietyPage = () => {
                           profilePicture={elections.ElectionPicture?.path}
                         >
                           <br />
-                          {/*<p>*/}
-                          {/*  This election ended: {""}*/}
-                          {/*  {format(parseISO(elections.end), "PPPP, p")}*/}
-                          {/*</p>*/}
+                          <p>
+                            This election ended: {""}
+                            {format(parseISO(elections?.end), "PPPP, p")}
+                          </p>
                           <Button
                             renderIcon={View}
                             onClick={() =>
@@ -1061,7 +1065,7 @@ export const SocietyPage = () => {
                           key={getFinishedResults.candidateId}
                           description={getFinishedResults.candidateAlias}
                         >
-                          {" "}
+                          {""}
                         </Cards>
                       )}
                       <Button

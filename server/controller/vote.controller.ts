@@ -139,31 +139,21 @@ export const getOpenElections = async (req: Request, res: Response) => {
 export const getFinishedElections = async (req: Request, res: Response) => {
   const societyId = req.params.societyId;
   try {
-    const elections = await Society.findAll({
-      where: { societyId: societyId },
-      include: [
-        {
-          model: Election,
-          where: {
-            end: {
-              [Op.lte]: new Date(),
-            },
-            electionStatus: false,
-          },
-          attributes: {
-            exclude: ["societyOwnerId", "createdAt", "updatedAt"],
-          },
-          include: [
-            {
-              model: FileStorage,
-              attributes: ["path"],
-              as: "ElectionPicture",
-            },
-          ],
+    const elections = await Election.findAll({
+      where: {
+        societyId: societyId,
+        end: {
+          [Op.lte]: new Date(),
         },
+        electionStatus: false,
+      },
+      include: [
+        { model: FileStorage, attributes: ["path"], as: "ElectionPicture" },
       ],
       attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
     });
+
+    console.log(elections);
 
     return res.status(HTTP.STATUS_OK).send({ elections });
   } catch (error) {

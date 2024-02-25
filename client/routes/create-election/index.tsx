@@ -8,6 +8,7 @@ import {
   DatePicker,
   DatePickerInput,
   FileUploader,
+  InlineNotification,
   NumberInput,
   SelectItem,
   TextInput,
@@ -85,6 +86,18 @@ export const CreateElection = () => {
       <div>
         <div>
           <Helmet>Edit Society</Helmet>
+        </div>
+        <div className={styles.notification}>
+          {success && (
+            <InlineNotification
+              onClose={() => setSuccess(null)}
+              title={success}
+              kind="success"
+            />
+          )}
+          {error && (
+            <InlineNotification onClose={() => setError(null)} title={error} />
+          )}
         </div>
         <div className={styles.container}>
           <form ref={electionForm} onSubmit={createElectionSubmit}>
