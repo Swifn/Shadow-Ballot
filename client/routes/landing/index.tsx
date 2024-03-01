@@ -10,6 +10,7 @@ import { Routes } from "../index";
 import { VoteModalCards } from "../../components/vote-modal";
 import { LiveVotes } from "../../components/live-votes";
 import { format, parseISO } from "date-fns";
+import { ElectionModal } from "../../components/election-modal";
 
 interface Society {
   Society: {
@@ -44,22 +45,40 @@ interface Results {
   candidateName: string;
   candidateAlias: string;
   description?: string;
+  path?: string;
+}
+
+interface Winner {
+  candidateId: number;
+  candidateName: string;
+  candidateAlias: string;
+  path: string;
+  votes?: number;
 }
 
 export const Landing = () => {
   const navigate = useNavigate();
   const [modal, setModal] = useState(false);
+  const [modalContext, setModalContext] = useState<string | null>("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [joinedSocieties, setJoinedSocieties] = useState<Society[]>([]);
   const [myElections, setMyElections] = useState<VotedElections[]>([]);
+  const [myFinishedElections, setMyFinishedElections] = useState<
+    VotedElections[]
+  >([]);
   const [mySocietySearch, setMySocietySearch] = useState("");
   const [myElectionSearch, setMyElectionSearch] = useState("");
+  const [myFinishedElectionSearch, setMyFinishedElectionSearch] = useState("");
   const [filteredSocieties, setFilteredSocieties] = useState<Society[]>([]);
   const [filteredElections, setFilteredElections] = useState<VotedElections[]>(
     []
   );
+  const [filteredFinishedElections, setFilteredFinishedElections] = useState<
+    VotedElections[]
+  >([]);
   const [getResults, setGetResults] = useState<Results[]>([]);
+  const [getFinishedResults, setGetFinishedResults] = useState<Winner>();
   const [selectedElection, setSelectedElection] = useState<number | null>(null);
   const voterId = localStorage.getItem("USER_ID");
 
@@ -68,6 +87,9 @@ export const Landing = () => {
   };
   const myElectionSearchHandler = event => {
     setMyElectionSearch(event.target.value);
+  };
+  const myFinishedElectionSearchHandler = event => {
+    setMyFinishedElectionSearch(event.target.value);
   };
 
   const viewCandidateHandler = async (electionId: number) => {
@@ -104,6 +126,18 @@ export const Landing = () => {
     setFilteredElections(filtered);
   }, [myElectionSearch, myElections]);
 
+  useEffect(() => {
+    const filtered = myFinishedElectionSearch
+      ? myFinishedElections!.filter(election =>
+          election.Election.name
+            .toLowerCase()
+            .includes(myFinishedElectionSearch.toLowerCase())
+        )
+      : myFinishedElections;
+
+    setFilteredFinishedElections(filtered);
+  }, [myFinishedElectionSearch, myFinishedElections]);
+
   const fetchData = async () => {
     try {
       const allSocieties = await get(`society/get-joined/${voterId}`).then(
@@ -118,10 +152,17 @@ export const Landing = () => {
       const response = await get(`vote/get-voted-in-elections/${voterId}`).then(
         res => res.json()
       );
-      console.log(
-        `voted in elections response ${response.votedElections[0].Election.name}`
-      );
+
       setMyElections(response.votedElections);
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      const response = await get(
+        `vote/get-finished-voted-in-elections/${voterId}`
+      ).then(res => res.json());
+
+      setMyFinishedElections(response.votedElections);
     } catch (error) {
       console.log(error);
     }
@@ -131,8 +172,18 @@ export const Landing = () => {
         const response = await get(`vote/results/${selectedElection}`).then(
           res => res.json()
         );
-        console.log(response);
         setGetResults(response);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    if (selectedElection != null) {
+      try {
+        const response = await get(`election/winner/${selectedElection}`).then(
+          res => res.json()
+        );
+        setGetFinishedResults(response.winner);
       } catch (error) {
         console.log(error);
       }
@@ -235,7 +286,7 @@ export const Landing = () => {
                               viewCandidateHandler(
                                 elections.Election.electionId
                               );
-                              console.log(elections.Election.electionId);
+                              setModalContext("liveVotes");
                             }}
                             renderIcon={PortInput}
                           >
@@ -247,35 +298,111 @@ export const Landing = () => {
                   </div>
                 </div>
               </div>
-              <VoteModalCards modal={modal}>
+              {modalContext === "liveVotes" && (
+                <VoteModalCards modal={modal}>
+                  <div className={styles.cardContainer}>
+                    {getResults &&
+                      getResults.map(results => (
+                        <Cards
+                          name={results.candidateName}
+                          key={results.candidateId}
+                          description={results.description}
+                          alias={results.candidateAlias}
+                          profilePicture={results?.path}
+                        >
+                          <div className={styles.resultsContainer}>
+                            <LiveVotes>
+                              <p>Total Votes: {results?.totalVotes}</p>
+                            </LiveVotes>
+                          </div>
+                        </Cards>
+                      ))}
+                  </div>
+                  <Button
+                    onClick={() => {
+                      toggleModal();
+                      setSelectedElection(null);
+                      setModalContext(null);
+                    }}
+                    renderIcon={Close}
+                    kind={"danger"}
+                  >
+                    Close
+                  </Button>
+                </VoteModalCards>
+              )}
+              <div className={styles.header}>
+                <h2>My past elections</h2>
+              </div>
+              <Search
+                labelText={"Search for an election"}
+                value={myFinishedElectionSearch}
+                onChange={myFinishedElectionSearchHandler}
+                className={styles.search}
+                placeholder={"Search for a election"}
+              />
+              <div className={styles.join}>
                 <div className={styles.cardContainer}>
-                  {getResults &&
-                    getResults.map(results => (
-                      <Cards
-                        name={results.candidateName}
-                        key={results.candidateId}
-                        description={results.description}
-                        alias={results.candidateAlias}
-                      >
-                        <div className={styles.resultsContainer}>
-                          <LiveVotes>
-                            <p>Total Votes: {results?.totalVotes}</p>
-                          </LiveVotes>
-                        </div>
-                      </Cards>
-                    ))}
+                  <div className={styles.outerContainer}>
+                    <div className={styles.cardContainer}>
+                      {filteredFinishedElections.map(elections => (
+                        <Cards
+                          name={elections.Election.name}
+                          key={elections.Election.electionId}
+                          profilePicture={
+                            elections.Election.ElectionPicture?.path
+                          }
+                        >
+                          <p>
+                            This election ended: {""}
+                            {format(
+                              parseISO(elections.Election.end),
+                              "PPPP, p"
+                            )}
+                          </p>
+                          <Button
+                            onClick={() => {
+                              viewCandidateHandler(
+                                elections.Election.electionId
+                              );
+                              setModalContext("finishedElections");
+                            }}
+                            renderIcon={PortInput}
+                          >
+                            View Winner
+                          </Button>
+                        </Cards>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <Button
-                  onClick={() => {
-                    toggleModal();
-                    setSelectedElection(null);
-                  }}
-                  renderIcon={Close}
-                  kind={"danger"}
-                >
-                  Close
-                </Button>
-              </VoteModalCards>
+              </div>
+              {modalContext === "finishedElections" && (
+                <ElectionModal modal={modal}>
+                  <h2>Winner</h2>
+                  {getFinishedResults && (
+                    <Cards
+                      name={getFinishedResults.candidateName}
+                      key={getFinishedResults.candidateId}
+                      description={getFinishedResults.candidateAlias}
+                      profilePicture={getFinishedResults.path}
+                    >
+                      {""}
+                    </Cards>
+                  )}
+                  <Button
+                    renderIcon={Close}
+                    onClick={() => {
+                      toggleModal();
+                      setSelectedElection(null);
+                      setModalContext(null);
+                    }}
+                    kind={"danger"}
+                  >
+                    Close
+                  </Button>
+                </ElectionModal>
+              )}
               <div className={styles.header}>
                 <h2>My societies</h2>
               </div>
