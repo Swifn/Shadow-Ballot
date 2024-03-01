@@ -404,6 +404,13 @@ export const getOwnedElections = async (req: Request, res: Response) => {
       where: {
         societyOwnerId: voterId,
       },
+      include: [
+        {
+          model: FileStorage,
+          attributes: ["path"],
+          as: "ElectionPicture",
+        },
+      ],
     });
     return res.status(HTTP.STATUS_OK).send({ elections });
   } catch (error) {

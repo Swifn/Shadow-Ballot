@@ -156,18 +156,17 @@ export const Society = () => {
 
     const responseData = await response.json();
 
-    const fileResponse = await postFile(
-      `society/upload-society-picture/${responseData.newSociety}`,
-      picture
-    );
-    if (!fileResponse.ok) {
-      alert("Failed to upload file");
+    if (picture !== null) {
+      await postFile(
+        `society/upload-society-picture/${responseData.newSociety}`,
+        picture
+      );
     }
 
-    await setStateBasedOnResponse(response);
     await fetchData();
-    setModal(!modal);
+    toggleModal();
     setFormEnabled(true);
+    await setStateBasedOnResponse(response);
   };
 
   const setStateBasedOnResponse = async response => {
@@ -254,38 +253,56 @@ export const Society = () => {
                 className={styles.search}
                 placeholder={"Search for a society"}
               />
-              <div className={styles.join}>
-                <div className={styles.cardContainer}>
-                  <div className={styles.outerContainer}>
-                    {Object.keys(filteredSocieties)
-                      .sort()
-                      .map(subject => (
-                        <div key={subject}>
-                          <h2>{subject}</h2>
-                          <div className={styles.cardContainer}>
-                            {filteredSocieties[subject].map(society => (
-                              <Cards
-                                name={society.name}
-                                key={society.societyId}
-                                societySubject={society.societySubject}
-                                profilePicture={society.societyPicture}
-                              >
-                                <Button
-                                  onClick={() =>
-                                    viewSocietyPageHandler(society.societyId)
-                                  }
-                                  renderIcon={PortInput}
+              {joinedSocieties && (
+                <div className={styles.join}>
+                  <div className={styles.cardContainer}>
+                    <div className={styles.outerContainer}>
+                      {Object.keys(filteredSocieties)
+                        .sort()
+                        .map(subject => (
+                          <div key={subject}>
+                            <h2>{subject}</h2>
+                            <div className={styles.cardContainer}>
+                              {filteredSocieties[subject].map(society => (
+                                <Cards
+                                  name={society.name}
+                                  key={society.societyId}
+                                  societySubject={society.societySubject}
+                                  profilePicture={society.societyPicture}
                                 >
-                                  View Society
-                                </Button>
-                              </Cards>
-                            ))}
+                                  <Button
+                                    onClick={() =>
+                                      viewSocietyPageHandler(society.societyId)
+                                    }
+                                    renderIcon={PortInput}
+                                  >
+                                    View Society
+                                  </Button>
+                                </Cards>
+                              ))}
+                              {filteredSocieties === null && (
+                                <div className={styles.emptyContainer}>
+                                  <p>
+                                    It doesnt look like there are any societies,
+                                    be the first to create one!
+                                  </p>
+                                  <Button
+                                    onClick={() => {
+                                      toggleModal();
+                                    }}
+                                    renderIcon={PortInput}
+                                  >
+                                    Join a Society
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
           <ElectionModal modal={modal}>

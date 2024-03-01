@@ -94,8 +94,11 @@ export const Landing = () => {
 
   const viewCandidateHandler = async (electionId: number) => {
     setSelectedElection(electionId);
-
     toggleModal();
+  };
+
+  const handlePageChange = () => {
+    navigate(Routes.SOCIETY());
   };
 
   const viewSocietyPageHandler = async (societyId: number) => {
@@ -252,7 +255,63 @@ export const Landing = () => {
                 <h1>Home</h1>
               </div>
               <div className={styles.header}>
-                <h2>My Elections</h2>
+                <h2>My societies</h2>
+              </div>
+              <Search
+                labelText={"Search for a society"}
+                value={mySocietySearch}
+                onChange={mySocietySearchHandler}
+                className={styles.search}
+                placeholder={"Search for a society"}
+              />
+              <div className={styles.join}>
+                <div className={styles.cardContainer}>
+                  <div className={styles.outerContainer}>
+                    <div className={styles.cardContainer}>
+                      {filteredSocieties &&
+                        filteredSocieties.map(society => (
+                          <Cards
+                            name={society.Society.name}
+                            key={society.Society.societyId}
+                            societySubject={
+                              society.Society.SocietySubject?.name
+                            }
+                            profilePicture={
+                              society.Society.SocietyPicture?.path
+                            }
+                          >
+                            <Button
+                              onClick={() =>
+                                viewSocietyPageHandler(
+                                  society.Society.societyId
+                                )
+                              }
+                              renderIcon={PortInput}
+                            >
+                              View Society
+                            </Button>
+                          </Cards>
+                        ))}
+                      {filteredSocieties.length === 0 && (
+                        <div className={styles.emptyContainer}>
+                          <p>
+                            It looks like you're not apart of any societies
+                            right now, click here to join one!
+                          </p>
+                          <Button
+                            onClick={handlePageChange}
+                            renderIcon={PortInput}
+                          >
+                            Join a Society
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.header}>
+                <h2>My Votes</h2>
               </div>
               <Search
                 labelText={"Search for an election"}
@@ -332,7 +391,7 @@ export const Landing = () => {
                 </VoteModalCards>
               )}
               <div className={styles.header}>
-                <h2>My past elections</h2>
+                <h2>My past votes</h2>
               </div>
               <Search
                 labelText={"Search for an election"}
@@ -403,41 +462,6 @@ export const Landing = () => {
                   </Button>
                 </ElectionModal>
               )}
-              <div className={styles.header}>
-                <h2>My societies</h2>
-              </div>
-              <Search
-                labelText={"Search for a society"}
-                value={mySocietySearch}
-                onChange={mySocietySearchHandler}
-                className={styles.search}
-                placeholder={"Search for a society"}
-              />
-              <div className={styles.join}>
-                <div className={styles.cardContainer}>
-                  <div className={styles.outerContainer}>
-                    <div className={styles.cardContainer}>
-                      {filteredSocieties.map(society => (
-                        <Cards
-                          name={society.Society.name}
-                          key={society.Society.societyId}
-                          societySubject={society.Society.SocietySubject?.name}
-                          profilePicture={society.Society.SocietyPicture?.path}
-                        >
-                          <Button
-                            onClick={() =>
-                              viewSocietyPageHandler(society.Society.societyId)
-                            }
-                            renderIcon={PortInput}
-                          >
-                            View Society
-                          </Button>
-                        </Cards>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </main>

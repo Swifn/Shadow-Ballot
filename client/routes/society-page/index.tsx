@@ -128,7 +128,6 @@ export const SocietyPage = () => {
   const [editingMemberId, setEditingMemberId] = useState<number | null>(null);
   const [isMembers, setIsMembers] = useState(false);
   const [modalContent, setModalContent] = useState<string | null>(null);
-  // const [modalContext, setModalContext] = useState<string | null>(null);
   const [getFinishedResults, setGetFinishedResults] = useState<Winner>();
   const [selectedElection, setSelectedElection] = useState<number | null>(null);
   const [selectedElectionCandidate, setSelectedElectionCandidate] = useState<
@@ -182,7 +181,6 @@ export const SocietyPage = () => {
 
   const viewCandidateHandler = async (electionId: number | null) => {
     setSelectedElection(electionId);
-    console.log(`Selected electionID ${selectedElection}`);
   };
 
   const voteHandler = (candidateId: number) => {
@@ -287,6 +285,31 @@ export const SocietyPage = () => {
     formData.append("startTimeZone", startTimeZone);
     formData.append("endTimeZone", endTimeZone);
 
+    if (parseISO(startDate) > parseISO(endDate)) {
+      setError("Start date cannot be after end date");
+      return;
+    }
+
+    if (parseISO(startDate) === parseISO(endDate) && startTime > endTime) {
+      setError("Start time cannot be after end time");
+      return;
+    }
+
+    if (parseISO(startDate) === parseISO(endDate) && startTime === endTime) {
+      setError("Start and end time cannot be the same");
+      return;
+    }
+
+    if (parseISO(startDate) < startOfDay(new Date())) {
+      setError("Start date cannot be in the past");
+      return;
+    }
+
+    if (parseISO(endDate) < startOfDay(new Date())) {
+      setError("End date cannot be in the past");
+      return;
+    }
+
     const body = Object.fromEntries(formData.entries());
     const response = await post("election/create", body);
 
@@ -303,6 +326,8 @@ export const SocietyPage = () => {
       } else {
         await setStateBasedOnResponse(response); // Handle initial post response
       }
+      await fetchData();
+      toggleModal();
     } else {
       await setStateBasedOnResponse(response); // Handle initial failed post response
     }
@@ -620,8 +645,6 @@ export const SocietyPage = () => {
       setMemberPicture(null);
       await fetchData();
       await setStateBasedOnResponse(response);
-    } else {
-      alert("Failed to upload file");
     }
   };
 
@@ -743,9 +766,7 @@ export const SocietyPage = () => {
             <section className={styles.sectionContainer}>
               <form onSubmit={editSocietySubmit} ref={editSocietiesForm}>
                 <div className={styles.sectionOne}>
-                  {isSocietyOwner && !isEdit && (
-                    <h2>{societyData.society.name}</h2>
-                  )}
+                  {!isEdit && <h2>{societyData?.society?.name}</h2>}
                   {isSocietyOwner && isEdit && (
                     <TextInput
                       id={"societyName"}
@@ -860,11 +881,11 @@ export const SocietyPage = () => {
                       />
                     </div>
                   )}
-                  {isSocietyOwner && !isEdit && (
+                  {!isEdit && (
                     <div className={styles.sectionThree}>
-                      <span>{societyData.society.SocietySubject?.name}</span>
+                      <span>{societyData?.society?.SocietySubject?.name}</span>
                       <br />
-                      <span>{societyData.society.description}</span>
+                      <span>{societyData?.society?.description}</span>
                     </div>
                   )}
                 </div>
@@ -1199,6 +1220,14 @@ export const SocietyPage = () => {
                         </Button>
                       </Cards>
                     ))}
+                  {getOpenElections?.length === 0 && (
+                    <div>
+                      <h2>
+                        There are no currently elections are open right now,
+                        check back later
+                      </h2>
+                    </div>
+                  )}
                   {modalContent === "vote" && (
                     <VoteModalCards modal={modal}>
                       <div className={styles.cardContainer}>
@@ -1286,6 +1315,14 @@ export const SocietyPage = () => {
                         )}
                       </Cards>
                     ))}
+                  {getClosedElections?.length === 0 && (
+                    <div>
+                      <h2>
+                        There are currently no upcoming elections right now,
+                        check back
+                      </h2>
+                    </div>
+                  )}
                   {modalContent === "addCandidates" && (
                     <ElectionModal modal={modal}>
                       <h3>Add candidate to election</h3>
@@ -1391,6 +1428,14 @@ export const SocietyPage = () => {
                         </Cards>
                       </div>
                     ))}
+                  {getFinishedElections?.length === 0 && (
+                    <div>
+                      <h2>
+                        There are currently no finished elections right now,
+                        check back later to see who got crowned winner!
+                      </h2>
+                    </div>
+                  )}
                   {modalContent === "winner" && (
                     <ElectionModal modal={modal}>
                       <h2>Winner</h2>

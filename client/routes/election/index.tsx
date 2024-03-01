@@ -31,7 +31,7 @@ export const Election = () => {
     Election[] | null
   >([]);
   const [getElectionCandidates, setGetElectionCandidates] = useState<
-    electionCandidates[] | null
+    electionCandidates[]
   >([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
