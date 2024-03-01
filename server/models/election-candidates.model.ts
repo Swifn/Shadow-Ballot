@@ -23,8 +23,8 @@ export class ElectionCandidates extends Model<
 
   declare description: string;
   declare candidatePicture: ForeignKey<FileStorage["fileId"]>;
-  declare getSocietyPicture: BelongsToGetAssociationMixin<FileStorage>;
-  declare createSocietyPicture: BelongsToCreateAssociationMixin<FileStorage>;
+  declare getElectionCandidatePicture: BelongsToGetAssociationMixin<FileStorage>;
+  declare createElectionCandidatePicture: BelongsToCreateAssociationMixin<FileStorage>;
 }
 
 export const init = sequelize =>

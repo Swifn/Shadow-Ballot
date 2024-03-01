@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./style.module.scss";
+import { Button } from "@carbon/react";
 interface props {
   name: string;
   alias?: string;

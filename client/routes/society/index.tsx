@@ -101,7 +101,6 @@ export const Society = () => {
       const response = await get(`society/get-joined/${voterId}`).then(res =>
         res.json()
       );
-      setJoinedSocieties(response.societies);
       const sortedSocieties = response.societies.sort((a, b) =>
         a.name.localeCompare(b.name)
       );

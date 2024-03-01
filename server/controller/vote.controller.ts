@@ -162,14 +162,19 @@ export const getFinishedElections = async (req: Request, res: Response) => {
 };
 
 export const getElectionResults = async (req: Request, res: Response) => {
-  const electionId = parseInt(req.params.electionId);
+  const electionId = req.params.electionId;
   try {
+    console.log(electionId);
     const election = await Election.findOne({
       where: {
         electionId: electionId,
       },
       attributes: ["kValue"],
     });
+
+    if (!election) {
+      return res.status(404).send({ message: "Election not found" });
+    }
 
     const kValue = election!.kValue;
 
@@ -213,11 +218,53 @@ export const getElectionResults = async (req: Request, res: Response) => {
         totalVotes: voteCounts[candidate.candidateId] || 0, // Assign 0 if no votes found
       };
     });
+
     return res.status(HTTP.STATUS_OK).send(results);
   } catch (error) {
     console.log(error);
     return res
       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
       .send({ message: "Unable to fetch election results" });
+  }
+};
+
+export const getVotedInElections = async (req: Request, res: Response) => {
+  const voterId = req.params.voterId;
+  try {
+    const votedElections = await Vote.findAll({
+      where: { voterId: voterId },
+      attributes: {
+        exclude: [
+          "voterId",
+          "candidateId",
+          "voteId",
+          "electionId",
+          "createdAt",
+          "updatedAt",
+        ],
+      },
+      include: [
+        {
+          model: Election,
+          attributes: {
+            exclude: ["societyId", "societyOwnerId", "createdAt", "updatedAt"],
+          },
+          include: [
+            {
+              model: FileStorage,
+              attributes: ["path"],
+              as: "ElectionPicture",
+            },
+          ],
+        },
+      ],
+    });
+
+    return res.status(HTTP.STATUS_OK).send({ votedElections });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to fetch voted elections" });
   }
 };

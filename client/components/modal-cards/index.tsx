@@ -1,8 +1,10 @@
 import React from "react";
 import styles from "./style.module.scss";
 import { Cards } from "../cards";
+import { Button } from "@carbon/react";
 
 interface electionCandidates {
+  candidateId: number;
   candidateName: string;
   candidateAlias: string;
   description: string;
@@ -12,6 +14,7 @@ interface ElectionModalCardsProps {
   cardChildren?: React.ReactNode;
   modal: boolean;
   cardContents: electionCandidates[] | null;
+  modalContents: React.ReactNode;
 }
 
 export const ElectionModalCards: React.FC<ElectionModalCardsProps> = ({
@@ -19,10 +22,11 @@ export const ElectionModalCards: React.FC<ElectionModalCardsProps> = ({
   cardChildren,
   modal,
   cardContents,
+  modalContents,
 }) => {
   return (
     <>
-      {modal && (
+      {modal && modalContents === "electionModalCards" && (
         <div className={styles.modal}>
           <div className={styles.overlay}>
             <div className={styles.modalContent}>
@@ -30,8 +34,9 @@ export const ElectionModalCards: React.FC<ElectionModalCardsProps> = ({
                 {cardContents &&
                   cardContents.map(contents => (
                     <Cards
+                      key={contents.candidateId}
                       name={contents.candidateName}
-                      key={contents.candidateAlias}
+                      alias={contents.candidateAlias}
                       description={contents.description}
                     >
                       {cardChildren}

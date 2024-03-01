@@ -12,6 +12,7 @@ import {
   getFinishedVotes,
   uploadElectionPicture,
   getElectionPicture,
+  uploadElectionCandidatePicture,
 } from "../controller/election.controller.js";
 
 export const electionRouter = Router();
@@ -33,3 +34,7 @@ electionRouter.post(
   uploadElectionPicture
 );
 electionRouter.get("/get-election-picture/:electionId", getElectionPicture);
+electionRouter.post(
+  "/upload-election-candidate-picture/:candidateId",
+  uploadElectionCandidatePicture
+);

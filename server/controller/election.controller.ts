@@ -161,7 +161,7 @@ export const addCandidate = async (req: Request, res: Response) => {
       });
     }
 
-    await ElectionCandidates.create({
+    const newCandidate = await ElectionCandidates.create({
       electionId: electionId,
       candidateName: candidateName,
       candidateAlias: candidateAlias,
@@ -169,6 +169,7 @@ export const addCandidate = async (req: Request, res: Response) => {
     });
     return res.status(HTTP.STATUS_CREATED).send({
       message: "You have successfully added this candidate to this election",
+      candidate: newCandidate.candidateId,
     });
   } catch (error) {
     console.log(error);
@@ -558,3 +559,83 @@ export const getElectionPicture = async (req: Request, res: Response) => {
       .send({ message: "Unable to get election picture" });
   }
 };
+
+export const uploadElectionCandidatePicture = async (
+  req: FileRequest,
+  res: Response
+) => {
+  const candidateId = req.params.candidateId;
+  try {
+    if (!req.files?.file) {
+      return res
+        .status(HTTP.STATUS_BAD_REQUEST)
+        .send({ message: "Please upload a file" });
+    }
+
+    const election = await ElectionCandidates.findOne({
+      where: {
+        candidateId: candidateId,
+      },
+    });
+    if (!election) {
+      return res
+        .status(HTTP.STATUS_NOT_FOUND)
+        .send({ message: "This election does not exist" });
+    }
+
+    const electionPicture = await election.getElectionCandidatePicture();
+    if (electionPicture) {
+      electionPicture.destroy();
+    }
+
+    const originalName = req.files.file.name;
+    const originalExtension = originalName.substring(
+      originalName.lastIndexOf(".")
+    );
+
+    const path = `client/assets/uploaded/${uuid()}${originalExtension}`;
+    await req.files.file.mv(path);
+
+    const fileToStore = {
+      name: "candidate_picture",
+      path: path,
+    };
+    await election.createElectionCandidatePicture(fileToStore as any);
+
+    return res
+      .status(HTTP.STATUS_OK)
+      .send({ message: "Candidate picture uploaded" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to upload candidate picture" });
+  }
+};
+
+// export const getElectionPicture = async (req: Request, res: Response) => {
+//   const electionId = req.params.electionId;
+//   try {
+//     const election = await Election.findByPk(electionId);
+//     if (!election) {
+//       return res
+//         .status(HTTP.STATUS_BAD_REQUEST)
+//         .send({ message: "This society does not exist" });
+//     }
+//
+//     const electionPicture = await election.getElectionPicture();
+//     let path;
+//     if (electionPicture) {
+//       path = electionPicture.path;
+//     } else {
+//       path = "client/assets/bg.jpg";
+//     }
+//
+//     return res.status(HTTP.STATUS_OK).send({ electionPicture: path });
+//   } catch (error) {
+//     console.log(error);
+//     return res
+//       .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+//       .send({ message: "Unable to get election picture" });
+//   }
+// };

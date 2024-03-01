@@ -373,4 +373,18 @@
   align-items: flex-start;
 }
 
+.addCandidateContainer{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+}
+.resultsContainer{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
 

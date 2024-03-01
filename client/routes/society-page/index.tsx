@@ -6,9 +6,16 @@ import { AuthenticatedRoute } from "../../components/conditional-route";
 import {
   Button,
   ComboBox,
+  DatePicker,
+  DatePickerInput,
+  FileUploader,
   InlineNotification,
+  NumberInput,
+  SelectItem,
   TextArea,
   TextInput,
+  TimePicker,
+  TimePickerSelect,
 } from "@carbon/react";
 import {
   Add,
@@ -30,7 +37,7 @@ import { TabComponent } from "../../components/tabs";
 import { ElectionModalCards } from "../../components/modal-cards";
 import { VoteModalCards } from "../../components/vote-modal";
 import { LiveVotes } from "../../components/live-votes";
-import { parseISO, format } from "date-fns";
+import { parseISO, format, startOfDay } from "date-fns";
 
 interface Society {
   society: {
@@ -85,6 +92,15 @@ interface SocietyMembers {
   MemberPicture: { path: string };
 }
 
+interface Results {
+  candidateId: number;
+  totalVotes: number;
+
+  candidateName: string;
+  candidateAlias: string;
+  description?: string;
+}
+
 export const SocietyPage = () => {
   const navigate = useNavigate();
   const sid = useParams<{ sid: string }>();
@@ -99,7 +115,8 @@ export const SocietyPage = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [picture, setPicture] = useState(null);
   const [memberPicture, setMemberPicture] = useState(null);
-  const [isSocietyOwner, setIsSocietyOwner] = useState<boolean | null>(null);
+  const [candidatePicture, setCandidatePicture] = useState(null);
+  const [isSocietyOwner, setIsSocietyOwner] = useState<boolean>(false);
   const [isSocietyMember, setIsSocietyMember] = useState<boolean | null>(null);
   const [modal, setModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -109,6 +126,9 @@ export const SocietyPage = () => {
   // const [modalContext, setModalContext] = useState<string | null>(null);
   const [getFinishedResults, setGetFinishedResults] = useState<Winner>();
   const [selectedElection, setSelectedElection] = useState<number | null>(null);
+  const [selectedElectionCandidate, setSelectedElectionCandidate] = useState<
+    number | null
+  >(null);
   const [getFinishedElections, setGetFinishedElections] = useState<
     Elections[] | null
   >([]);
@@ -133,6 +153,14 @@ export const SocietyPage = () => {
   const createMemberForm = useRef<HTMLFormElement>(null);
   const editMemberForm = useRef<HTMLFormElement>(null);
   const electionForm = useRef<HTMLFormElement>(null);
+  const candidateForm = useRef<HTMLFormElement>(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("12:00");
+  const [endTime, setEndTime] = useState("12:00");
+  const [startTimeZone, setStartTimeZone] = useState("GMT");
+  const [endTimeZone, setEndTimeZone] = useState("GMT");
+  const [kValue, setKValue] = useState<number>(2);
   const voterId = localStorage.getItem("USER_ID");
 
   const navigateEditHandler = () => {
@@ -156,7 +184,7 @@ export const SocietyPage = () => {
 
   const viewCandidateHandler = async (electionId: number | null) => {
     setSelectedElection(electionId);
-    console.log(selectedElection);
+    console.log(`Selected electionID ${selectedElection}`);
   };
 
   const voteHandler = (candidateId: number) => {
@@ -174,12 +202,16 @@ export const SocietyPage = () => {
   const handleFileChange = event => {
     const file = event.target.files[0];
     setPicture(file);
-    console.log(picture);
   };
   const handleMemberFileChange = event => {
     const file = event.target.files[0];
     setMemberPicture(file);
-    console.log(picture);
+  };
+  const handleCandidateFileChange = event => {
+    const file = event.target.files[0];
+    console.log(file);
+    setCandidatePicture(file);
+    console.log(candidatePicture);
   };
 
   const createMemberSubmit = async (event: FormEvent) => {
@@ -216,6 +248,69 @@ export const SocietyPage = () => {
     }
     toggleModal();
     await fetchData();
+  };
+
+  const addElectionCandidateSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+
+    const formData = new FormData(candidateForm.current ?? undefined);
+
+    const body = Object.fromEntries(formData.entries());
+
+    const response = await post(
+      `election/${selectedElectionCandidate}/add-candidate`,
+      body
+    );
+
+    const responseData = await response.json();
+    console.log(responseData.message);
+
+    if (candidatePicture !== null) {
+      const fileResponse = await postFile(
+        `election/upload-election-candidate-picture/${responseData.candidate}`,
+        candidatePicture
+      );
+    }
+
+    await setStateBasedOnResponse(response);
+    setSelectedElection(null);
+    await fetchData();
+    setModal(!modal);
+  };
+
+  const createElectionSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    const formData = new FormData(electionForm.current ?? undefined);
+    formData.append("voterId", voterId ?? "");
+    formData.append("societyId", sid.sid ?? "");
+    formData.append("kValue", kValue.toString() ?? "");
+    formData.append("startDate", startDate);
+    formData.append("endDate", endDate);
+    formData.append("startTime", startTime);
+    formData.append("endTime", endTime);
+    formData.append("startTimeZone", startTimeZone);
+    formData.append("endTimeZone", endTimeZone);
+
+    const body = Object.fromEntries(formData.entries());
+    const response = await post("election/create", body);
+    const responseMessage = (await response.json()).message;
+
+    if (picture !== null) {
+      const fileResponse = await postFile(
+        `election/upload-election-picture/${responseMessage.newElection}`,
+        picture
+      );
+    }
+
+    if (response.ok) {
+      setSuccess(responseMessage);
+      setError(null);
+      setModal(!modal);
+      fetchData();
+    } else {
+      setSuccess(null);
+      setError(responseMessage);
+    }
   };
 
   const editSocietySubmit = async (event: FormEvent) => {
@@ -305,6 +400,16 @@ export const SocietyPage = () => {
     } catch (error) {
       console.log(`Error when retrieving open election data: ${error}`);
     }
+    if (selectedElection != null) {
+      try {
+        const response = await get(`vote/results/${selectedElection}`).then(
+          res => res.json()
+        );
+        setGetResults(response);
+      } catch (error) {
+        console.log(error);
+      }
+    }
 
     try {
       const response = await get(`vote/get-closed-elections/${sid.sid}`).then(
@@ -343,7 +448,6 @@ export const SocietyPage = () => {
         res => res.json()
       );
       setSocietyData(response.response);
-      console.log(societyData);
     } catch (error) {
       console.log(error);
     }
@@ -380,7 +484,6 @@ export const SocietyPage = () => {
         res => res.json()
       );
       setGetFinishedElections(response.elections);
-      console.log("finsihed elections", response.elections);
     } catch (error) {
       console.log(error);
     }
@@ -390,7 +493,6 @@ export const SocietyPage = () => {
         const response = await get(`election/winner/${selectedElection}`).then(
           res => res.json()
         );
-        console.log("selected election winner response", response);
         setGetFinishedResults(response.winner);
       } catch (error) {
         console.log(error);
@@ -401,7 +503,6 @@ export const SocietyPage = () => {
       const response = await get(`society/get-society-members/${sid.sid}`).then(
         res => res.json()
       );
-      console.log(response.members);
       setSocietyTeamMember(response.members);
     } catch (error) {
       console.log(error);
@@ -531,6 +632,15 @@ export const SocietyPage = () => {
     }
   };
 
+  const handleFileUpload = event => {
+    const file = event.target.files[0];
+    setPicture(file);
+  };
+
+  const kValueHandler = (event, newValue) => {
+    setKValue(newValue.value);
+  };
+
   useEffect(() => {
     if (picture) {
       try {
@@ -633,7 +743,10 @@ export const SocietyPage = () => {
                         size={"sm"}
                         kind={"primary"}
                         renderIcon={ResultNew}
-                        onClick={() => navigateCreateElectionHandler()}
+                        onClick={() => {
+                          setModalContent("createElection");
+                          toggleModal();
+                        }}
                         hasIconOnly={true}
                       />
                     )}
@@ -747,7 +860,7 @@ export const SocietyPage = () => {
             {societyTeamMember &&
               societyTeamMember.map(member => (
                 <div className={styles.teamMember} key={member.memberId}>
-                  {isSocietyOwner && isEdit && (
+                  {isSocietyOwner && (
                     <div className={styles.teamMemberButton}>
                       <Button
                         size={"sm"}
@@ -843,6 +956,126 @@ export const SocietyPage = () => {
                 </div>
               ))}
           </div>
+          {modalContent === "createElection" && (
+            <ElectionModal modal={modal}>
+              <div>
+                <div className={styles.container}>
+                  <form ref={electionForm} onSubmit={createElectionSubmit}>
+                    <h3>Create Election</h3>
+                    <TextInput
+                      id={"election_name"}
+                      labelText={"Election Name"}
+                      type={"text"}
+                      name={"name"}
+                      required={true}
+                    />
+                    <TextInput
+                      id={"description"}
+                      labelText={"Description"}
+                      type={"text"}
+                      name={"description"}
+                      required={true}
+                    />
+                    <NumberInput
+                      id={"kValue"}
+                      label={"K-anonymity value"}
+                      size={"lg"}
+                      min={1}
+                      max={10}
+                      defaultValue={2}
+                      required={true}
+                      onChange={kValueHandler}
+                    />
+                    <div className={styles.datePicker}>
+                      <DatePicker
+                        datePickerType="range"
+                        onChange={event => {
+                          setStartDate(event[0].toISOString().split("T")[0]);
+                          setEndDate(event[1].toISOString().split("T")[0]);
+                        }}
+                        minDate={startOfDay(new Date()).toISOString()}
+                      >
+                        <DatePickerInput
+                          id="date-picker-input-id-start"
+                          placeholder="mm/dd/yyyy"
+                          labelText="Start date"
+                        />
+                        <DatePickerInput
+                          id="date-picker-input-id-finish"
+                          placeholder="mm/dd/yyyy"
+                          labelText="End date"
+                        />
+                      </DatePicker>
+                    </div>
+                    <TimePicker
+                      onChange={event => {
+                        setStartTime(event.target.value);
+                      }}
+                      defaultValue={"12:00"}
+                      id="time-picker"
+                      labelText="Select a start time"
+                      pattern={"[0-9]{2}:[0-9]{2}"}
+                    >
+                      <TimePickerSelect
+                        id="time-picker-select-2"
+                        defaultValue="UTC"
+                        onChange={event => setStartTimeZone(event.target.value)}
+                      >
+                        <SelectItem value="BST" text="BST" />
+                        <SelectItem value="UTC" text="UTC" />
+                      </TimePickerSelect>
+                    </TimePicker>
+                    <TimePicker
+                      id="time-picker"
+                      labelText="Select a finish time"
+                      defaultValue={"12:00"}
+                      pattern={"[0-9]{2}:[0-9]{2}"}
+                      onChange={event => {
+                        setEndTime(event.target.value);
+                      }}
+                    >
+                      <TimePickerSelect
+                        id="time-picker-select-2"
+                        defaultValue="UTC"
+                        onChange={event => {
+                          setEndTimeZone(event.target.value);
+                        }}
+                      >
+                        <SelectItem value="BST" text="BST" />
+                        <SelectItem value="UTC" text="UTC" />
+                      </TimePickerSelect>
+                    </TimePicker>
+                    <FileUploader
+                      buttonLabel={"Upload a picture"}
+                      filenameStatus={"complete"}
+                      onChange={handleFileUpload}
+                      className={styles.fileUploader}
+                      accept={[".jpg", ".png", ".jpeg"]}
+                    >
+                      Upload Profile Picture
+                    </FileUploader>
+                    <Button
+                      renderIcon={Close}
+                      kind={"danger"}
+                      onClick={() => {
+                        toggleModal();
+                        setModalContent(null);
+                      }}
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      renderIcon={PortInput}
+                      kind={"primary"}
+                      type={"submit"}
+                    >
+                      Create
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            </ElectionModal>
+          )}
           {modalContent === "teamMembers" && (
             <ElectionModal modal={modal}>
               <div>
@@ -941,9 +1174,10 @@ export const SocietyPage = () => {
                         </p>
                         <Button
                           renderIcon={View}
-                          onClick={() =>
-                            viewCandidateHandler(elections.electionId)
-                          }
+                          onClick={() => {
+                            viewCandidateHandler(elections.electionId);
+                            setModalContent("vote");
+                          }}
                         >
                           View Candidates
                         </Button>
@@ -975,7 +1209,11 @@ export const SocietyPage = () => {
                           ))}
                       </div>
                       <Button
-                        onClick={() => toggleModal()}
+                        onClick={() => {
+                          toggleModal();
+                          setModalContent(null);
+                          setSelectedElection(null);
+                        }}
                         renderIcon={Close}
                         kind={"danger"}
                       >
@@ -1007,20 +1245,99 @@ export const SocietyPage = () => {
                         </p>
                         <Button
                           renderIcon={View}
-                          onClick={() =>
-                            viewCandidateHandler(elections.electionId)
-                          }
+                          onClick={() => {
+                            viewCandidateHandler(elections.electionId);
+                            setModalContent("electionModalCards");
+                          }}
                         >
                           View Candidates
                         </Button>
+                        {isSocietyOwner && (
+                          <Button
+                            renderIcon={Add}
+                            kind={"ghost"}
+                            onClick={() => {
+                              setModalContent("addCandidates");
+                              toggleModal();
+                              setSelectedElectionCandidate(
+                                elections.electionId
+                              );
+                            }}
+                          >
+                            Add Candidates
+                          </Button>
+                        )}
                       </Cards>
                     ))}
+                  {modalContent === "addCandidates" && (
+                    <ElectionModal modal={modal}>
+                      <h3>Add candidate to election</h3>
+                      <form
+                        ref={candidateForm}
+                        onSubmit={addElectionCandidateSubmit}
+                      >
+                        <div className={styles.addCandidateContainer}>
+                          <TextInput
+                            id={"candidateName"}
+                            labelText={"Candidate Name"}
+                            type={"text"}
+                            name={"candidateName"}
+                            required={true}
+                          />
+                          <TextInput
+                            id={"candidateName"}
+                            labelText={"Alias"}
+                            type={"text"}
+                            name={"candidateAlias"}
+                            required={true}
+                          />
+                          <TextInput
+                            id={"Description"}
+                            labelText={"Description"}
+                            type={"text"}
+                            name={"description"}
+                            required={true}
+                          />
+                          <FileUploader
+                            buttonLabel={"Upload a picture"}
+                            filenameStatus={"complete"}
+                            onChange={handleCandidateFileChange}
+                            className={styles.fileUploader}
+                            accept={[".jpg", ".png", ".jpeg"]}
+                          >
+                            Upload Profile Picture
+                          </FileUploader>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            toggleModal();
+                            setModalContent(null);
+                          }}
+                          renderIcon={Close}
+                          kind={"danger"}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          renderIcon={PortInput}
+                          kind={"primary"}
+                          type={"submit"}
+                        >
+                          Add
+                        </Button>
+                      </form>
+                    </ElectionModal>
+                  )}
                   <ElectionModalCards
                     modal={modal}
+                    modalContents={modalContent}
                     cardContents={getElectionCandidates}
                   >
                     <Button
-                      onClick={() => toggleModal()}
+                      onClick={() => {
+                        toggleModal();
+                        setSelectedElection(null);
+                      }}
                       renderIcon={Close}
                       kind={"danger"}
                     >
@@ -1070,7 +1387,11 @@ export const SocietyPage = () => {
                       )}
                       <Button
                         renderIcon={Close}
-                        onClick={() => toggleModal()}
+                        onClick={() => {
+                          toggleModal();
+                          setSelectedElection(null);
+                          setModalContent(null);
+                        }}
                         kind={"danger"}
                       >
                         Close

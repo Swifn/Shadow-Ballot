@@ -1,122 +1,309 @@
-import { Helmet } from "react-helmet";
 import { AuthenticatedRoute } from "../../components/conditional-route";
 import styles from "./style.module.scss";
-import React from "react";
-import { Button } from "@carbon/react";
-import { PortInput } from "@carbon/icons-react";
-import { InfoCards } from "../../components/info-cards";
+import { Button, InlineNotification, Search } from "@carbon/react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Close, PortInput } from "@carbon/icons-react";
+import { get } from "../../utils/fetch";
+import { Cards } from "../../components/cards";
 import { Routes } from "../index";
+import { VoteModalCards } from "../../components/vote-modal";
+import { LiveVotes } from "../../components/live-votes";
+
+interface Society {
+  Society: {
+    societyId: number;
+    name: string;
+    description: string;
+    SocietySubject?: {
+      name: string;
+    };
+    SocietyPicture?: {
+      path: string;
+    };
+  };
+}
+
+interface VotedElections {
+  Election: {
+    electionId: number;
+    name: string;
+    description: string;
+    end: string;
+    ElectionPicture?: {
+      path: string;
+    };
+  };
+}
+
+interface Results {
+  candidateId: number;
+  totalVotes: number;
+
+  candidateName: string;
+  candidateAlias: string;
+  description?: string;
+}
 
 export const Landing = () => {
   const navigate = useNavigate();
+  const [modal, setModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [joinedSocieties, setJoinedSocieties] = useState<Society[]>([]);
+  const [myElections, setMyElections] = useState<VotedElections[]>([]);
+  const [mySocietySearch, setMySocietySearch] = useState("");
+  const [myElectionSearch, setMyElectionSearch] = useState("");
+  const [filteredSocieties, setFilteredSocieties] = useState<Society[]>([]);
+  const [filteredElections, setFilteredElections] = useState<VotedElections[]>(
+    []
+  );
+  const [getResults, setGetResults] = useState<Results[]>([]);
+  const [selectedElection, setSelectedElection] = useState<number | null>(null);
+  const voterId = localStorage.getItem("USER_ID");
 
-  const navigateSocietyHandler = () => {
-    navigate(Routes.SOCIETY());
+  const mySocietySearchHandler = event => {
+    setMySocietySearch(event.target.value);
   };
-  const navigateElectionHandler = () => {
-    navigate(Routes.ELECTION());
+  const myElectionSearchHandler = event => {
+    setMyElectionSearch(event.target.value);
   };
-  const navigateVoteHandler = () => {
-    navigate(Routes.VOTE());
+
+  const viewCandidateHandler = async (electionId: number | null) => {
+    setSelectedElection(electionId);
+    toggleModal();
   };
+
+  const viewSocietyPageHandler = async (societyId: number) => {
+    navigate(Routes.SOCIETY_PAGE(societyId.toString()));
+  };
+
+  useEffect(() => {
+    const filtered = mySocietySearch
+      ? joinedSocieties!.filter(society =>
+          society.Society.name
+            .toLowerCase()
+            .includes(mySocietySearch.toLowerCase())
+        )
+      : joinedSocieties;
+
+    setFilteredSocieties(filtered);
+  }, [mySocietySearch, joinedSocieties]);
+
+  useEffect(() => {
+    const filtered = myElectionSearch
+      ? myElections!.filter(election =>
+          election.Election.name
+            .toLowerCase()
+            .includes(myElectionSearch.toLowerCase())
+        )
+      : myElections;
+
+    setFilteredElections(filtered);
+  }, [myElectionSearch, myElections]);
+
+  const fetchData = async () => {
+    try {
+      const allSocieties = await get(`society/get-joined/${voterId}`).then(
+        res => res.json()
+      );
+
+      setJoinedSocieties(allSocieties.societies);
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      const response = await get(`vote/get-voted-in-elections/${voterId}`).then(
+        res => res.json()
+      );
+      console.log(
+        `voted in elections response ${response.votedElections[0].Election.name}`
+      );
+      setMyElections(response.votedElections);
+    } catch (error) {
+      console.log(error);
+    }
+
+    if (selectedElection != null) {
+      try {
+        const response = await get(`vote/results/${selectedElection}`).then(
+          res => res.json()
+        );
+        console.log(response);
+        setGetResults(response);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const setStateBasedOnResponse = async response => {
+    const responseMessage = (await response.json()).message;
+    if (response.ok) {
+      setSuccess(responseMessage);
+      setError(null);
+    } else {
+      setSuccess(null);
+      setError(responseMessage);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await fetchData();
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    })();
+  }, []);
+
+  const toggleModal = () => {
+    setModal(!modal);
+  };
+
+  useEffect(() => {
+    if (modal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "scroll";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [modal]);
 
   return (
     <AuthenticatedRoute>
-      <div>
-        <Helmet>
-          <title>Shadow Ballot</title>
-        </Helmet>
-        <div className={styles.mainContainer}>
-          <div className={styles.intro}>
-            <h1>Shadow Ballot</h1>
-            <p>
-              The anonymous voting system for your university <br />
-            </p>
-          </div>
-          <div className={styles.middle}>
-            <div className={styles.societyContainer}>
-              <div className={styles.society}>
-                <h1>Society</h1>
-                <Button onClick={navigateSocietyHandler} renderIcon={PortInput}>
-                  Go to Societies
-                </Button>
-              </div>
+      <div className={styles.container}>
+        <main>
+          <div>
+            <div className={styles.notification}>
+              {success && (
+                <InlineNotification
+                  onClose={() => setSuccess(null)}
+                  title={success}
+                  kind="success"
+                />
+              )}
+              {error && (
+                <InlineNotification
+                  onClose={() => setError(null)}
+                  title={error}
+                />
+              )}
             </div>
-            <div className={styles.electionContainer}>
-              <div className={styles.election}>
-                <h1>Election</h1>
+            <div className={styles.content}>
+              <div className={styles.header}>
+                <h1>Home</h1>
+              </div>
+              <div className={styles.header}>
+                <h2>My Elections</h2>
+              </div>
+              <Search
+                labelText={"Search for an election"}
+                value={myElectionSearch}
+                onChange={myElectionSearchHandler}
+                className={styles.search}
+                placeholder={"Search for a election"}
+              />
+              <div className={styles.join}>
+                <div className={styles.cardContainer}>
+                  <div className={styles.outerContainer}>
+                    <div className={styles.cardContainer}>
+                      {filteredElections.map(elections => (
+                        <Cards
+                          name={elections.Election.name}
+                          key={elections.Election.electionId}
+                          description={elections.Election.description}
+                          profilePicture={
+                            elections.Election.ElectionPicture?.path
+                          }
+                        >
+                          <Button
+                            onClick={() =>
+                              viewCandidateHandler(
+                                elections.Election.electionId
+                              )
+                            }
+                            renderIcon={PortInput}
+                          >
+                            View Election
+                          </Button>
+                        </Cards>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <VoteModalCards modal={modal}>
+                <div className={styles.cardContainer}>
+                  {getResults &&
+                    getResults.map(results => (
+                      <Cards
+                        name={results.candidateName}
+                        key={results.candidateId}
+                        description={results.description}
+                        alias={results.candidateAlias}
+                      >
+                        <div className={styles.resultsContainer}>
+                          <LiveVotes>
+                            <p>Total Votes: {results?.totalVotes}</p>
+                          </LiveVotes>
+                        </div>
+                      </Cards>
+                    ))}
+                </div>
                 <Button
-                  onClick={navigateElectionHandler}
-                  renderIcon={PortInput}
+                  onClick={() => {
+                    toggleModal();
+                    setSelectedElection(null);
+                  }}
+                  renderIcon={Close}
+                  kind={"danger"}
                 >
-                  Go to Elections
+                  Close
                 </Button>
+              </VoteModalCards>
+              <div className={styles.header}>
+                <h2>My societies</h2>
+              </div>
+              <Search
+                labelText={"Search for a society"}
+                value={mySocietySearch}
+                onChange={mySocietySearchHandler}
+                className={styles.search}
+                placeholder={"Search for a society"}
+              />
+              <div className={styles.join}>
+                <div className={styles.cardContainer}>
+                  <div className={styles.outerContainer}>
+                    <div className={styles.cardContainer}>
+                      {filteredSocieties.map(society => (
+                        <Cards
+                          name={society.Society.name}
+                          key={society.Society.societyId}
+                          societySubject={society.Society.SocietySubject?.name}
+                          profilePicture={society.Society.SocietyPicture?.path}
+                        >
+                          <Button
+                            onClick={() =>
+                              viewSocietyPageHandler(society.Society.societyId)
+                            }
+                            renderIcon={PortInput}
+                          >
+                            View Society
+                          </Button>
+                        </Cards>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div className={styles.howContainer}>
-            <h1>How it works</h1>
-
-            <div className={styles.how}>
-              <h2>As as host</h2>
-              <InfoCards>
-                <h3>Create a society</h3>
-                <p>
-                  You can create a society by visiting the create a society page
-                </p>
-              </InfoCards>{" "}
-              <InfoCards>
-                <h3>Create an election</h3>
-                <p>
-                  All management of elections is done through the the profile
-                  page. Here, you can create an election and add candidates.
-                </p>
-              </InfoCards>{" "}
-              <InfoCards>
-                <h3>Management</h3>
-                <p>
-                  While you're on the profile page, you can also manage all the
-                  elections and societies you have created. This includes
-                  editing societies, and opening and closing elections
-                </p>
-              </InfoCards>
-            </div>
-            <div className={styles.how}>
-              <h2>As as voter</h2>
-              <InfoCards>
-                <h3>Join a Society</h3>
-                <p>
-                  In order to be an eligible voter, you need to be a member of a
-                  society before the election has been created
-                </p>
-              </InfoCards>{" "}
-              <InfoCards>
-                <h3>Elections</h3>
-                <p>
-                  You can view all the elections that are both open and closed,
-                  if you are not eligible to vote, or if you are not a member of
-                  a society.
-                </p>
-              </InfoCards>{" "}
-              <InfoCards>
-                <h3>Voting</h3>
-                <p>
-                  On the votes page, you can see all the elections that are open
-                  and you are eligible to vote in. You can vote for a candidate
-                  by clicking on an election and pressing the vote button
-                </p>
-              </InfoCards>
-            </div>
-          </div>
-
-          <div className={styles.third}>
-            <h1>Vote</h1>
-            <Button onClick={navigateVoteHandler} renderIcon={PortInput}>
-              Go to Voting
-            </Button>
-          </div>
-        </div>
+        </main>
       </div>
     </AuthenticatedRoute>
   );

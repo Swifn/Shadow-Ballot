@@ -76,13 +76,15 @@ Election.belongsTo(FileStorage, {
   as: "ElectionPicture",
   foreignKey: "electionPicture",
 });
-
 FileStorage.hasOne(ElectionCandidates, {
-  foreignKey: "candidatePicture",
+  foreignKey: "candidatesPicture",
   onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
-ElectionCandidates.belongsTo(FileStorage, { foreignKey: "candidatePicture" });
+ElectionCandidates.belongsTo(FileStorage, {
+  as: "CandidatePicture",
+  foreignKey: "candidatePicture",
+});
 
 SocietyTeamMembers.belongsTo(FileStorage, {
   as: "MemberPicture",
