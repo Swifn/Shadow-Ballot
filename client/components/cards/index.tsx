@@ -12,7 +12,7 @@ interface props {
 }
 
 export const Cards: React.FC<props> = ({
-  profilePicture = "/client/assets/bg.jpg",
+  profilePicture = "client/assets/bg.jpg",
   name,
   description,
   societySubject,
@@ -23,7 +23,7 @@ export const Cards: React.FC<props> = ({
   return (
     <div className={styles.card}>
       {society && <h4 className={styles.society}>{society}</h4>}
-      <img src={`${profilePicture}`} alt="" />
+      <img src={`/${profilePicture}`} alt="" />
       <div className={styles.cardContent}>
         <h3>{name}</h3>
         {societySubject && <h5>{societySubject}</h5>}

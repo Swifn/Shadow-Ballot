@@ -14,7 +14,7 @@ interface ElectionModalCardsProps {
   cardChildren?: React.ReactNode;
   modal: boolean;
   cardContents: electionCandidates[] | null;
-  modalContents: React.ReactNode;
+  modalContents?: React.ReactNode;
 }
 
 export const ElectionModalCards: React.FC<ElectionModalCardsProps> = ({

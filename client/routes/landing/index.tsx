@@ -9,6 +9,7 @@ import { Cards } from "../../components/cards";
 import { Routes } from "../index";
 import { VoteModalCards } from "../../components/vote-modal";
 import { LiveVotes } from "../../components/live-votes";
+import { format, parseISO } from "date-fns";
 
 interface Society {
   Society: {
@@ -69,8 +70,9 @@ export const Landing = () => {
     setMyElectionSearch(event.target.value);
   };
 
-  const viewCandidateHandler = async (electionId: number | null) => {
+  const viewCandidateHandler = async (electionId: number) => {
     setSelectedElection(electionId);
+
     toggleModal();
   };
 
@@ -156,7 +158,7 @@ export const Landing = () => {
         console.error("An error occurred:", error);
       }
     })();
-  }, []);
+  }, [selectedElection, voterId]);
 
   const toggleModal = () => {
     setModal(!modal);
@@ -221,12 +223,20 @@ export const Landing = () => {
                             elections.Election.ElectionPicture?.path
                           }
                         >
+                          <p>
+                            This election ends: {""}
+                            {format(
+                              parseISO(elections.Election.end),
+                              "PPPP, p"
+                            )}
+                          </p>
                           <Button
-                            onClick={() =>
+                            onClick={() => {
                               viewCandidateHandler(
                                 elections.Election.electionId
-                              )
-                            }
+                              );
+                              console.log(elections.Election.electionId);
+                            }}
                             renderIcon={PortInput}
                           >
                             View Election

@@ -19,7 +19,6 @@ import { SocietyPage } from "./routes/society-page";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorBoundaryFallback, logError } from "./components/error-boundary";
 import { Notification } from "./components/web-socket/notification";
-import { EditSociety } from "./routes/edit-society";
 import { CreateElection } from "./routes/create-election";
 
 function App() {
@@ -46,7 +45,6 @@ function App() {
                 <Route path={Index.VOTE()} element={<Vote />} />
                 <Route path={Index.SOCIETY()} element={<Society />} />
                 <Route path={Index.SOCIETY_PAGE()} element={<SocietyPage />} />
-                <Route path={Index.EDIT_SOCIETY()} element={<EditSociety />} />
                 <Route
                   path={Index.CREATE_ELECTION()}
                   element={<CreateElection />}

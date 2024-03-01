@@ -299,21 +299,47 @@ export const getOwnedSocieties = async (req: Request, res: Response) => {
 export const getJoinedSocieties = async (req: Request, res: Response) => {
   const voterId = req.params.voterId;
   try {
-    const societies = await Society.findAll({
+    const societies = await VoterSociety.findAll({
+      where: { voterId: voterId },
+      attributes: {
+        exclude: [
+          "societyId",
+          "voterSocietyId",
+          "voterId",
+          "createdAt",
+          "updatedAt",
+        ],
+      },
       include: [
         {
-          model: VoterSociety,
-          attributes: [],
-          where: {
-            voterId: voterId,
+          model: Society,
+          attributes: {
+            exclude: [
+              "societyOwnerId",
+              "societyPictureId",
+              "subjectId",
+              "createdAt",
+              "updatedAt",
+            ],
           },
+          include: [
+            {
+              model: SocietySubject,
+              attributes: ["name"],
+              where: {
+                subjectId: Sequelize.col("society.subjectId"),
+              },
+            },
+            {
+              model: FileStorage,
+              attributes: ["path"],
+              as: "SocietyPicture",
+            },
+          ],
         },
       ],
-
-      attributes: {
-        exclude: ["societyOwnerId", "createdAt", "updatedAt"],
-      },
     });
+
     return res.status(HTTP.STATUS_OK).send({ societies });
   } catch (error) {
     console.log(error);

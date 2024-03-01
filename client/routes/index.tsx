@@ -10,7 +10,6 @@ export const Routes = {
   PRIVACY_POLICY: () => `/privacy-policy`,
   SOCIETY: () => `/society`,
   SOCIETY_PAGE: (sid?: string) => `/society/${sid ?? ":sid"}`,
-  EDIT_SOCIETY: (sid?: string) => `/edit-society/${sid ?? ":sid"}`,
   CREATE_ELECTION: (sid?: string) => `/create-election/${sid ?? ":sid"}`,
   LANDING: () => `/landing`,
 };

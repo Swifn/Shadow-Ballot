@@ -114,6 +114,7 @@ export const SocietyPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [picture, setPicture] = useState(null);
+  const [electionPicture, setElectionPicture] = useState(null);
   const [memberPicture, setMemberPicture] = useState(null);
   const [candidatePicture, setCandidatePicture] = useState(null);
   const [isSocietyOwner, setIsSocietyOwner] = useState<boolean>(false);
@@ -214,6 +215,11 @@ export const SocietyPage = () => {
     console.log(candidatePicture);
   };
 
+  const handleElectionFileChange = event => {
+    const file = event.target.files[0];
+    setElectionPicture(file);
+  };
+
   const createMemberSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const formData = new FormData(createMemberForm.current ?? undefined);
@@ -293,23 +299,24 @@ export const SocietyPage = () => {
 
     const body = Object.fromEntries(formData.entries());
     const response = await post("election/create", body);
-    const responseMessage = (await response.json()).message;
 
-    if (picture !== null) {
+    const responseData = await response.json();
+
+    if (electionPicture !== null) {
       const fileResponse = await postFile(
-        `election/upload-election-picture/${responseMessage.newElection}`,
-        picture
+        `election/upload-election-picture/${responseData.newElection}`,
+        electionPicture
       );
     }
 
     if (response.ok) {
-      setSuccess(responseMessage);
+      setSuccess(responseData);
       setError(null);
       setModal(!modal);
-      fetchData();
+      await fetchData();
     } else {
       setSuccess(null);
-      setError(responseMessage);
+      setError(responseData);
     }
   };
 
@@ -1048,7 +1055,7 @@ export const SocietyPage = () => {
                     <FileUploader
                       buttonLabel={"Upload a picture"}
                       filenameStatus={"complete"}
-                      onChange={handleFileUpload}
+                      onChange={handleElectionFileChange}
                       className={styles.fileUploader}
                       accept={[".jpg", ".png", ".jpeg"]}
                     >
@@ -1364,9 +1371,10 @@ export const SocietyPage = () => {
                           </p>
                           <Button
                             renderIcon={View}
-                            onClick={() =>
-                              viewCandidateHandler(elections.electionId)
-                            }
+                            onClick={() => {
+                              viewCandidateHandler(elections.electionId);
+                              setModalContent("winner");
+                            }}
                           >
                             View Winner
                           </Button>
