@@ -39,7 +39,7 @@ export const Society = () => {
   const [formEnabled, setFormEnabled] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState<number>(0);
   const [joinedSocieties, setJoinedSocieties] = useState<Society[] | null>([]);
-  // const [picture, setPicture] = useState(null);
+  const [picture, setPicture] = useState(null);
   const [search, setSearch] = useState("");
   const [filteredSocieties, setFilteredSocieties] = useState({});
   const [societiesBySubject, setSocietiesBySubject] = useState({});
@@ -53,10 +53,10 @@ export const Society = () => {
     setSearch(event.target.value);
   };
 
-  // const handleFileUpload = event => {
-  //   const file = event.target.files[0];
-  //   setPicture(file);
-  // };
+  const handleFileUpload = event => {
+    const file = event.target.files[0];
+    setPicture(file);
+  };
 
   const viewSocietyPageHandler = async (societyId: number) => {
     navigate(Routes.SOCIETY_PAGE(societyId.toString()));
@@ -154,13 +154,15 @@ export const Society = () => {
     const body = Object.fromEntries(formData.entries());
     const response = await post("society/create", body);
 
-    // const fileResponse = await postFile(
-    //   `society/upload-society-picture/${response.newSociety}`,
-    //   picture
-    // );
-    // if (!fileResponse.ok) {
-    //   alert("Failed to upload file");
-    // }
+    const responseData = await response.json();
+
+    const fileResponse = await postFile(
+      `society/upload-society-picture/${responseData.newSociety}`,
+      picture
+    );
+    if (!fileResponse.ok) {
+      alert("Failed to upload file");
+    }
 
     await setStateBasedOnResponse(response);
     await fetchData();
@@ -319,15 +321,15 @@ export const Society = () => {
                     type="text"
                     invalid={error !== null}
                   />
-                  {/*<FileUploader*/}
-                  {/*  buttonLabel={"Upload a picture"}*/}
-                  {/*  filenameStatus={"complete"}*/}
-                  {/*  onChange={handleFileUpload}*/}
-                  {/*  className={styles.fileUploader}*/}
-                  {/*  accept={[".jpg", ".png", ".jpeg"]}*/}
-                  {/*>*/}
-                  {/*  Upload Profile Picture*/}
-                  {/*</FileUploader>*/}
+                  <FileUploader
+                    buttonLabel={"Upload a picture"}
+                    filenameStatus={"complete"}
+                    onChange={handleFileUpload}
+                    className={styles.fileUploader}
+                    accept={[".jpg", ".png", ".jpeg"]}
+                  >
+                    Upload Profile Picture
+                  </FileUploader>
                   <div className={styles.submit}>
                     <Button
                       kind={"danger"}

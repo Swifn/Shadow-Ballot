@@ -50,7 +50,7 @@ export const createSociety = async (req: Request, res: Response) => {
         .send({ message: "A society with this name has already been created" });
     }
 
-    await Society.create({
+    const newSociety = await Society.create({
       societyId: societyId,
       societyOwnerId: voterId,
       name: name,
@@ -60,6 +60,7 @@ export const createSociety = async (req: Request, res: Response) => {
 
     return res.status(HTTP.STATUS_CREATED).send({
       message: `${name} has been created`,
+      newSociety: newSociety.societyId,
     });
   } catch (error) {
     console.log(error);
@@ -446,7 +447,7 @@ export const getSocietyPicture = async (req: Request, res: Response) => {
 };
 
 export const uploadSocietyPicture = async (req: FileRequest, res: Response) => {
-  const societyId = parseInt(req.params.societyId);
+  const societyId = req.params.societyId;
   try {
     if (!req.files?.file) {
       return res
