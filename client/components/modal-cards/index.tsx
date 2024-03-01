@@ -8,6 +8,7 @@ interface electionCandidates {
   candidateName: string;
   candidateAlias: string;
   description: string;
+  CandidatePicture?: { path: string };
 }
 interface ElectionModalCardsProps {
   children: React.ReactNode;
@@ -38,6 +39,7 @@ export const ElectionModalCards: React.FC<ElectionModalCardsProps> = ({
                       name={contents.candidateName}
                       alias={contents.candidateAlias}
                       description={contents.description}
+                      profilePicture={contents.CandidatePicture?.path}
                     >
                       {cardChildren}
                     </Cards>

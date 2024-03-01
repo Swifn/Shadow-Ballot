@@ -196,6 +196,13 @@ export const getElectionWithCandidates = async (
             "candidateAlias",
             "description",
           ],
+          include: [
+            {
+              model: FileStorage,
+              attributes: ["path"],
+              as: "CandidatePicture",
+            },
+          ],
         },
       ],
       attributes: {
@@ -572,20 +579,20 @@ export const uploadElectionCandidatePicture = async (
         .send({ message: "Please upload a file" });
     }
 
-    const election = await ElectionCandidates.findOne({
+    const candidate = await ElectionCandidates.findOne({
       where: {
         candidateId: candidateId,
       },
     });
-    if (!election) {
+    if (!candidate) {
       return res
         .status(HTTP.STATUS_NOT_FOUND)
         .send({ message: "This election does not exist" });
     }
 
-    const electionPicture = await election.getElectionCandidatePicture();
-    if (electionPicture) {
-      electionPicture.destroy();
+    const candidatePicture = await candidate.getCandidatePicture();
+    if (candidatePicture) {
+      candidatePicture.destroy();
     }
 
     const originalName = req.files.file.name;
@@ -600,7 +607,7 @@ export const uploadElectionCandidatePicture = async (
       name: "candidate_picture",
       path: path,
     };
-    await election.createElectionCandidatePicture(fileToStore as any);
+    await candidate.createCandidatePicture(fileToStore as any);
 
     return res
       .status(HTTP.STATUS_OK)

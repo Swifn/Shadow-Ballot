@@ -82,6 +82,7 @@ interface electionCandidates {
   candidateName: string;
   candidateAlias: string;
   description: string;
+  CandidatePicture: { path: string };
 }
 
 interface SocietyMembers {
@@ -1200,6 +1201,7 @@ export const SocietyPage = () => {
                               key={results.candidateId}
                               description={results.description}
                               alias={results.candidateAlias}
+                              profilePicture={}
                             >
                               <Button
                                 renderIcon={PortInput}
