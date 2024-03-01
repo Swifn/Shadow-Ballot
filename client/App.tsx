@@ -10,8 +10,8 @@ import { SignIn } from "./routes/auth/sign-in";
 import { SignUp } from "./routes/auth/sign-up";
 import { Voter } from "./routes/voter";
 import { NotFound } from "./routes/not-found";
-import { Election } from "./routes/election";
-import { Vote } from "./routes/vote";
+// import { Election } from "./routes/election";
+// import { Vote } from "./routes/vote";
 import { PrivacyPolicy } from "./routes/privacy-policy";
 import { Society } from "./routes/society";
 import { Landing } from "./routes/landing";
@@ -41,8 +41,8 @@ function App() {
                   <Route path={Index.AUTH()} element={<SignIn />} />
                 </Route>
                 <Route path={Index.VOTER()} element={<Voter />} />
-                <Route path={Index.ELECTION()} element={<Election />} />
-                <Route path={Index.VOTE()} element={<Vote />} />
+                {/*<Route path={Index.ELECTION()} element={<Election />} />*/}
+                {/*<Route path={Index.VOTE()} element={<Vote />} />*/}
                 <Route path={Index.SOCIETY()} element={<Society />} />
                 <Route path={Index.SOCIETY_PAGE()} element={<SocietyPage />} />
                 <Route

@@ -6,6 +6,7 @@ import {
   getElectionResults,
   getFinishedElections,
   getVotedInElections,
+  getFinishedVotedInElections,
 } from "../controller/vote.controller.js";
 
 export const voteRouter = Router();
@@ -20,3 +21,7 @@ voteRouter.get("/get-closed-elections/:societyId", getClosedElections);
 voteRouter.get("/results/:electionId", getElectionResults);
 voteRouter.get("/get-finished-elections/:societyId", getFinishedElections);
 voteRouter.get("/get-voted-in-elections/:voterId", getVotedInElections);
+voteRouter.get(
+  "/get-finished-voted-in-elections/:voterId",
+  getFinishedVotedInElections
+);

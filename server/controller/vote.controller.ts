@@ -183,15 +183,14 @@ export const getElectionResults = async (req: Request, res: Response) => {
         "candidateName",
         "candidateAlias",
         "description",
-      ],
-      include: [
-        {
-          model: FileStorage,
-          attributes: ["path"],
-          as: "CandidatePicture",
-        },
+        "candidatePicture",
+        "path",
       ],
     });
+
+    // const candidatePictureIDs = candidates.map(candidate => candidate.candidatePicture);
+
+    console.log(candidates[0].candidatePicture);
 
     // Fetch vote counts for candidates
     const votes = await Vote.findAll({
@@ -220,10 +219,13 @@ export const getElectionResults = async (req: Request, res: Response) => {
         candidateName: candidate.candidateName,
         candidateAlias: candidate.candidateAlias,
         description: candidate.description,
+        path: candidate.path,
         totalVotes: voteCounts[candidate.candidateId] || 0, // Assign 0 if no votes found
+        // candidatePicture: candidate.CandidatePicture,
       };
     });
 
+    // console.log(results);
     return res.status(HTTP.STATUS_OK).send(results);
   } catch (error) {
     console.log(error);
@@ -251,6 +253,60 @@ export const getVotedInElections = async (req: Request, res: Response) => {
       include: [
         {
           model: Election,
+          where: {
+            end: {
+              [Op.gte]: new Date(),
+            },
+          },
+          attributes: {
+            exclude: ["societyId", "societyOwnerId", "createdAt", "updatedAt"],
+          },
+          include: [
+            {
+              model: FileStorage,
+              attributes: ["path"],
+              as: "ElectionPicture",
+            },
+          ],
+        },
+      ],
+    });
+
+    return res.status(HTTP.STATUS_OK).send({ votedElections });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(HTTP.STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: "Unable to fetch voted elections" });
+  }
+};
+
+export const getFinishedVotedInElections = async (
+  req: Request,
+  res: Response
+) => {
+  const voterId = req.params.voterId;
+  try {
+    const votedElections = await Vote.findAll({
+      where: { voterId: voterId },
+      attributes: {
+        exclude: [
+          "voterId",
+          "candidateId",
+          "voteId",
+          "electionId",
+          "createdAt",
+          "updatedAt",
+        ],
+      },
+      include: [
+        {
+          model: Election,
+          where: {
+            end: {
+              [Op.lte]: new Date(),
+            },
+          },
           attributes: {
             exclude: ["societyId", "societyOwnerId", "createdAt", "updatedAt"],
           },

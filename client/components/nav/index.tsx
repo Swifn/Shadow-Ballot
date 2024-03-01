@@ -100,23 +100,23 @@ export const Nav = () => {
                   >
                     Societies
                   </Button>
-                  <SwitcherDivider />
-                  <Button
-                    className={styles.button}
-                    kind={"ghost"}
-                    renderIcon={ThumbsUp}
-                    onClick={navigate.bind(null, Routes.ELECTION())}
-                  >
-                    Elections
-                  </Button>
-                  <Button
-                    className={styles.button}
-                    kind={"ghost"}
-                    renderIcon={Box}
-                    onClick={navigate.bind(null, Routes.VOTE())}
-                  >
-                    Vote
-                  </Button>
+                  {/*<SwitcherDivider />*/}
+                  {/*<Button*/}
+                  {/*  className={styles.button}*/}
+                  {/*  kind={"ghost"}*/}
+                  {/*  renderIcon={ThumbsUp}*/}
+                  {/*  onClick={navigate.bind(null, Routes.ELECTION())}*/}
+                  {/*>*/}
+                  {/*  Elections*/}
+                  {/*</Button>*/}
+                  {/*<Button*/}
+                  {/*  className={styles.button}*/}
+                  {/*  kind={"ghost"}*/}
+                  {/*  renderIcon={Box}*/}
+                  {/*  onClick={navigate.bind(null, Routes.VOTE())}*/}
+                  {/*>*/}
+                  {/*  Vote*/}
+                  {/*</Button>*/}
                   <SwitcherDivider />
                   <Button
                     className={styles.button}

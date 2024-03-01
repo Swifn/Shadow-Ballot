@@ -25,6 +25,7 @@ export class ElectionCandidates extends Model<
   declare candidatePicture: ForeignKey<FileStorage["fileId"]>;
   declare getCandidatePicture: BelongsToGetAssociationMixin<FileStorage>;
   declare createCandidatePicture: BelongsToCreateAssociationMixin<FileStorage>;
+  declare path: string;
 }
 
 export const init = sequelize =>
@@ -53,6 +54,10 @@ export const init = sequelize =>
       candidatePicture: {
         type: DataTypes.INTEGER,
         defaultValue: null,
+      },
+      path: {
+        type: DataTypes.TEXT,
+        unique: true,
       },
     },
     { modelName: "ElectionCandidates", freezeTableName: true, sequelize }

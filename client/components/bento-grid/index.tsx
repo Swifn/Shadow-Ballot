@@ -35,7 +35,7 @@ export const BentoGrid = ({ children }) => {
         <Cards
           name={"Your society"}
           societySubject={"Subject"}
-          profilePicture={"/client/assets/tonythetiger.jpeg"}
+          profilePicture={"client/assets/tonythetiger.jpeg"}
         >
           <Button renderIcon={PortInput} disabled size={"sm"}>
             View your Society

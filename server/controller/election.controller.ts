@@ -166,7 +166,7 @@ export const addCandidate = async (req: Request, res: Response) => {
       candidateName: candidateName,
       candidateAlias: candidateAlias,
       description: description,
-    });
+    } as any);
     return res.status(HTTP.STATUS_CREATED).send({
       message: "You have successfully added this candidate to this election",
       candidate: newCandidate.candidateId,
@@ -356,7 +356,7 @@ export const getFinishedVotes = async (req: Request, res: Response) => {
       where: {
         electionId: electionId,
       },
-      attributes: ["candidateId", "candidateName", "candidateAlias"],
+      attributes: ["candidateId", "candidateName", "candidateAlias", "path"],
     });
 
     const votes = await Vote.findAll({
@@ -380,6 +380,7 @@ export const getFinishedVotes = async (req: Request, res: Response) => {
         candidateId: candidate.candidateId,
         candidateName: candidate.candidateName,
         candidateAlias: candidate.candidateAlias,
+        path: candidate.path,
         votes: voteCounts[candidate.candidateId] || 0,
       };
     });
@@ -602,6 +603,8 @@ export const uploadElectionCandidatePicture = async (
 
     const path = `client/assets/uploaded/${uuid()}${originalExtension}`;
     await req.files.file.mv(path);
+
+    await candidate.update({ path: path });
 
     const fileToStore = {
       name: "candidate_picture",

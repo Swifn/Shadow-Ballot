@@ -75,8 +75,8 @@ interface Winner {
   candidateId: number;
   candidateName: string;
   candidateAlias: string;
+  path: string;
   votes?: number;
-  CandidatePicture?: { path: string };
 }
 interface electionCandidates {
   candidateId: number;
@@ -102,7 +102,7 @@ interface Results {
   candidateAlias: string;
   description?: string;
 
-  CandidatePicture?: { path: string };
+  path?: string;
 }
 
 export const SocietyPage = () => {
@@ -168,13 +168,6 @@ export const SocietyPage = () => {
   const [kValue, setKValue] = useState<number>(2);
   const voterId = localStorage.getItem("USER_ID");
 
-  const navigateEditHandler = () => {
-    navigate(Routes.EDIT_SOCIETY(sid.sid));
-  };
-  const navigateCreateElectionHandler = () => {
-    navigate(Routes.CREATE_ELECTION(sid.sid));
-  };
-
   const deleteNavigationHandler = () => {
     navigate(Routes.LANDING());
   };
@@ -214,9 +207,7 @@ export const SocietyPage = () => {
   };
   const handleCandidateFileChange = event => {
     const file = event.target.files[0];
-    console.log(file);
     setCandidatePicture(file);
-    console.log(candidatePicture);
   };
 
   const handleElectionFileChange = event => {
@@ -237,24 +228,14 @@ export const SocietyPage = () => {
     const responseJson = await response.json();
     const responseMember = responseJson.member;
 
-    if (response.ok) {
-      setSuccess(responseJson.message);
-      setError(null);
-    } else {
-      setSuccess(null);
-      setError(responseJson.message);
-    }
     if (memberPicture !== null) {
       const fileResponse = await postFile(
         `society/upload-society-member-picture/${responseMember}`,
         memberPicture
       );
-      if (fileResponse.ok) {
-        await setStateBasedOnResponse(fileResponse);
-        setPicture(null);
-      } else {
-        alert("Failed to upload file");
-      }
+      await setStateBasedOnResponse(fileResponse);
+    } else {
+      await setStateBasedOnResponse(response);
     }
     toggleModal();
     await fetchData();
@@ -273,16 +254,21 @@ export const SocietyPage = () => {
     );
 
     const responseData = await response.json();
-    console.log(responseData.message);
 
-    if (candidatePicture !== null) {
-      const fileResponse = await postFile(
-        `election/upload-election-candidate-picture/${responseData.candidate}`,
-        candidatePicture
-      );
+    if (response.ok) {
+      if (candidatePicture !== null) {
+        const fileResponse = await postFile(
+          `election/upload-election-candidate-picture/${responseData.candidate}`,
+          candidatePicture
+        );
+        await setStateBasedOnResponse(fileResponse);
+      } else {
+        await setStateBasedOnResponse(response);
+      }
+    } else {
+      await setStateBasedOnResponse(response);
     }
 
-    await setStateBasedOnResponse(response);
     setSelectedElection(null);
     await fetchData();
     setModal(!modal);
@@ -304,23 +290,21 @@ export const SocietyPage = () => {
     const body = Object.fromEntries(formData.entries());
     const response = await post("election/create", body);
 
-    const responseData = await response.json();
-
-    if (electionPicture !== null) {
-      const fileResponse = await postFile(
-        `election/upload-election-picture/${responseData.newElection}`,
-        electionPicture
-      );
-    }
-
     if (response.ok) {
-      setSuccess(responseData);
-      setError(null);
-      setModal(!modal);
-      await fetchData();
+      const responseData = await response.json();
+
+      // Only proceed with file upload if the previous operation was successful
+      if (electionPicture !== null) {
+        const fileResponse = await postFile(
+          `election/upload-election-picture/${responseData.newElection}`,
+          electionPicture
+        );
+        await setStateBasedOnResponse(fileResponse); // Handle file upload response
+      } else {
+        await setStateBasedOnResponse(response); // Handle initial post response
+      }
     } else {
-      setSuccess(null);
-      setError(responseData);
+      await setStateBasedOnResponse(response); // Handle initial failed post response
     }
   };
 
@@ -347,6 +331,7 @@ export const SocietyPage = () => {
       body
     );
     await fetchData();
+    setEditingMemberId(null);
     await setStateBasedOnResponse(response);
     setEditingMemberId(null);
   };
@@ -417,6 +402,14 @@ export const SocietyPage = () => {
           res => res.json()
         );
         console.log(response);
+
+        if (response.length === 0) {
+          setSelectedElection(null);
+          setError("No candidates found for this election, check back later.");
+        } else {
+          setGetElectionCandidates(response.ElectionCandidates);
+          toggleModal();
+        }
         setGetResults(response);
       } catch (error) {
         console.log(error);
@@ -595,13 +588,26 @@ export const SocietyPage = () => {
   };
 
   const setStateBasedOnResponse = async response => {
-    const responseMessage = (await response.json()).message;
-    if (response.ok) {
-      setSuccess(responseMessage);
-      setError(null);
-    } else {
-      setSuccess(null);
-      setError(responseMessage);
+    try {
+      const responseBody = await response.json(); // Await the parsing of the JSON body
+      console.log("Response Body:", responseBody); // Debugging
+
+      if (response.ok) {
+        setSuccess(responseBody.message); // Assuming success messages are always present
+        setError(null);
+      } else {
+        setSuccess(null);
+        setError(responseBody.message || "An unknown error occurred"); // Fallback error message
+      }
+    } catch (error) {
+      console.error("Error parsing response:", error);
+      setError("Failed to process the response."); // Fallback error handler
+    } finally {
+      // Clean up actions like resetting form data can go here
+      setMemberPicture(null);
+      setElectionPicture(null);
+      setCandidatePicture(null);
+      setPicture(null);
     }
   };
 
@@ -971,120 +977,118 @@ export const SocietyPage = () => {
           {modalContent === "createElection" && (
             <ElectionModal modal={modal}>
               <div>
-                <div className={styles.container}>
-                  <form ref={electionForm} onSubmit={createElectionSubmit}>
-                    <h3>Create Election</h3>
-                    <TextInput
-                      id={"election_name"}
-                      labelText={"Election Name"}
-                      type={"text"}
-                      name={"name"}
-                      required={true}
-                    />
-                    <TextInput
-                      id={"description"}
-                      labelText={"Description"}
-                      type={"text"}
-                      name={"description"}
-                      required={true}
-                    />
-                    <NumberInput
-                      id={"kValue"}
-                      label={"K-anonymity value"}
-                      size={"lg"}
-                      min={1}
-                      max={10}
-                      defaultValue={2}
-                      required={true}
-                      onChange={kValueHandler}
-                    />
-                    <div className={styles.datePicker}>
-                      <DatePicker
-                        datePickerType="range"
-                        onChange={event => {
-                          setStartDate(event[0].toISOString().split("T")[0]);
-                          setEndDate(event[1].toISOString().split("T")[0]);
-                        }}
-                        minDate={startOfDay(new Date()).toISOString()}
-                      >
-                        <DatePickerInput
-                          id="date-picker-input-id-start"
-                          placeholder="mm/dd/yyyy"
-                          labelText="Start date"
-                        />
-                        <DatePickerInput
-                          id="date-picker-input-id-finish"
-                          placeholder="mm/dd/yyyy"
-                          labelText="End date"
-                        />
-                      </DatePicker>
-                    </div>
-                    <TimePicker
+                <form ref={electionForm} onSubmit={createElectionSubmit}>
+                  <h3>Create Election</h3>
+                  <TextInput
+                    id={"election_name"}
+                    labelText={"Election Name"}
+                    type={"text"}
+                    name={"name"}
+                    required={true}
+                  />
+                  <TextInput
+                    id={"description"}
+                    labelText={"Description"}
+                    type={"text"}
+                    name={"description"}
+                    required={true}
+                  />
+                  <NumberInput
+                    id={"kValue"}
+                    label={"K-anonymity value"}
+                    size={"lg"}
+                    min={1}
+                    max={10}
+                    defaultValue={2}
+                    required={true}
+                    onChange={kValueHandler}
+                  />
+                  <div className={styles.datePicker}>
+                    <DatePicker
+                      datePickerType="range"
                       onChange={event => {
-                        setStartTime(event.target.value);
+                        setStartDate(event[0].toISOString().split("T")[0]);
+                        setEndDate(event[1].toISOString().split("T")[0]);
                       }}
-                      defaultValue={"12:00"}
-                      id="time-picker"
-                      labelText="Select a start time"
-                      pattern={"[0-9]{2}:[0-9]{2}"}
+                      minDate={startOfDay(new Date()).toISOString()}
                     >
-                      <TimePickerSelect
-                        id="time-picker-select-2"
-                        defaultValue="UTC"
-                        onChange={event => setStartTimeZone(event.target.value)}
-                      >
-                        <SelectItem value="BST" text="BST" />
-                        <SelectItem value="UTC" text="UTC" />
-                      </TimePickerSelect>
-                    </TimePicker>
-                    <TimePicker
-                      id="time-picker"
-                      labelText="Select a finish time"
-                      defaultValue={"12:00"}
-                      pattern={"[0-9]{2}:[0-9]{2}"}
+                      <DatePickerInput
+                        id="date-picker-input-id-start"
+                        placeholder="mm/dd/yyyy"
+                        labelText="Start date"
+                      />
+                      <DatePickerInput
+                        id="date-picker-input-id-finish"
+                        placeholder="mm/dd/yyyy"
+                        labelText="End date"
+                      />
+                    </DatePicker>
+                  </div>
+                  <TimePicker
+                    onChange={event => {
+                      setStartTime(event.target.value);
+                    }}
+                    defaultValue={"12:00"}
+                    id="time-picker"
+                    labelText="Select a start time"
+                    pattern={"[0-9]{2}:[0-9]{2}"}
+                  >
+                    <TimePickerSelect
+                      id="time-picker-select-2"
+                      defaultValue="UTC"
+                      onChange={event => setStartTimeZone(event.target.value)}
+                    >
+                      <SelectItem value="BST" text="BST" />
+                      <SelectItem value="UTC" text="UTC" />
+                    </TimePickerSelect>
+                  </TimePicker>
+                  <TimePicker
+                    id="time-picker"
+                    labelText="Select a finish time"
+                    defaultValue={"12:00"}
+                    pattern={"[0-9]{2}:[0-9]{2}"}
+                    onChange={event => {
+                      setEndTime(event.target.value);
+                    }}
+                  >
+                    <TimePickerSelect
+                      id="time-picker-select-2"
+                      defaultValue="UTC"
                       onChange={event => {
-                        setEndTime(event.target.value);
+                        setEndTimeZone(event.target.value);
                       }}
                     >
-                      <TimePickerSelect
-                        id="time-picker-select-2"
-                        defaultValue="UTC"
-                        onChange={event => {
-                          setEndTimeZone(event.target.value);
-                        }}
-                      >
-                        <SelectItem value="BST" text="BST" />
-                        <SelectItem value="UTC" text="UTC" />
-                      </TimePickerSelect>
-                    </TimePicker>
-                    <FileUploader
-                      buttonLabel={"Upload a picture"}
-                      filenameStatus={"complete"}
-                      onChange={handleElectionFileChange}
-                      className={styles.fileUploader}
-                      accept={[".jpg", ".png", ".jpeg"]}
-                    >
-                      Upload Profile Picture
-                    </FileUploader>
-                    <Button
-                      renderIcon={Close}
-                      kind={"danger"}
-                      onClick={() => {
-                        toggleModal();
-                        setModalContent(null);
-                      }}
-                    >
-                      Close
-                    </Button>
-                    <Button
-                      renderIcon={PortInput}
-                      kind={"primary"}
-                      type={"submit"}
-                    >
-                      Create
-                    </Button>
-                  </form>
-                </div>
+                      <SelectItem value="BST" text="BST" />
+                      <SelectItem value="UTC" text="UTC" />
+                    </TimePickerSelect>
+                  </TimePicker>
+                  <FileUploader
+                    buttonLabel={"Upload a picture"}
+                    filenameStatus={"complete"}
+                    onChange={handleElectionFileChange}
+                    className={styles.fileUploader}
+                    accept={[".jpg", ".png", ".jpeg"]}
+                  >
+                    Upload Profile Picture
+                  </FileUploader>
+                  <Button
+                    renderIcon={Close}
+                    kind={"danger"}
+                    onClick={() => {
+                      toggleModal();
+                      setModalContent(null);
+                    }}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    renderIcon={PortInput}
+                    kind={"primary"}
+                    type={"submit"}
+                  >
+                    Create
+                  </Button>
+                </form>
               </div>
             </ElectionModal>
           )}
@@ -1205,7 +1209,7 @@ export const SocietyPage = () => {
                               key={results.candidateId}
                               description={results.description}
                               alias={results.candidateAlias}
-                              profilePicture={results.CandidatePicture?.path}
+                              profilePicture={results?.path}
                             >
                               <Button
                                 renderIcon={PortInput}
@@ -1395,9 +1399,7 @@ export const SocietyPage = () => {
                           name={getFinishedResults.candidateName}
                           key={getFinishedResults.candidateId}
                           description={getFinishedResults.candidateAlias}
-                          profilePicture={
-                            getFinishedResults.CandidatePicture?.path
-                          }
+                          profilePicture={getFinishedResults.path}
                         >
                           {""}
                         </Cards>
