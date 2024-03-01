@@ -252,7 +252,7 @@
 }
 
 .whoIsInvolved{
-  display: flex;
+  //display: flex;
   flex-wrap: wrap;
   justify-content: center;
   padding: 16px;
@@ -275,6 +275,7 @@
 }
 
 .teamMember {
+
   position: relative;
   flex: 0 0 auto;
   width: 150px;
