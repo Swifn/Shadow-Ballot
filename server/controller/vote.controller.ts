@@ -153,8 +153,6 @@ export const getFinishedElections = async (req: Request, res: Response) => {
       attributes: { exclude: ["societyOwnerId", "createdAt", "updatedAt"] },
     });
 
-    console.log(elections);
-
     return res.status(HTTP.STATUS_OK).send({ elections });
   } catch (error) {
     console.error("Error closing elections:", error);
@@ -185,6 +183,13 @@ export const getElectionResults = async (req: Request, res: Response) => {
         "candidateName",
         "candidateAlias",
         "description",
+      ],
+      include: [
+        {
+          model: FileStorage,
+          attributes: ["path"],
+          as: "CandidatePicture",
+        },
       ],
     });
 

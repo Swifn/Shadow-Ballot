@@ -76,6 +76,7 @@ interface Winner {
   candidateName: string;
   candidateAlias: string;
   votes?: number;
+  CandidatePicture?: { path: string };
 }
 interface electionCandidates {
   candidateId: number;
@@ -100,6 +101,8 @@ interface Results {
   candidateName: string;
   candidateAlias: string;
   description?: string;
+
+  CandidatePicture?: { path: string };
 }
 
 export const SocietyPage = () => {
@@ -413,6 +416,7 @@ export const SocietyPage = () => {
         const response = await get(`vote/results/${selectedElection}`).then(
           res => res.json()
         );
+        console.log(response);
         setGetResults(response);
       } catch (error) {
         console.log(error);
@@ -1201,7 +1205,7 @@ export const SocietyPage = () => {
                               key={results.candidateId}
                               description={results.description}
                               alias={results.candidateAlias}
-                              profilePicture={}
+                              profilePicture={results.CandidatePicture?.path}
                             >
                               <Button
                                 renderIcon={PortInput}
@@ -1391,6 +1395,9 @@ export const SocietyPage = () => {
                           name={getFinishedResults.candidateName}
                           key={getFinishedResults.candidateId}
                           description={getFinishedResults.candidateAlias}
+                          profilePicture={
+                            getFinishedResults.CandidatePicture?.path
+                          }
                         >
                           {""}
                         </Cards>
