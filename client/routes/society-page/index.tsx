@@ -286,27 +286,68 @@ export const SocietyPage = () => {
     formData.append("startTimeZone", startTimeZone);
     formData.append("endTimeZone", endTimeZone);
 
-    if (parseISO(startDate) > parseISO(endDate)) {
+    if (!startDate || !endDate || !startTime || !endTime) {
+      setError("Please fill in all date and time fields");
+      return;
+    }
+
+    if (parseISO(startDate).getTime() > parseISO(endDate).getTime()) {
       setError("Start date cannot be after end date");
       return;
     }
 
-    if (parseISO(startDate) === parseISO(endDate) && startTime > endTime) {
+    if (
+      parseISO(startDate).getTime() === parseISO(endDate).getTime() &&
+      startTime > endTime
+    ) {
       setError("Start time cannot be after end time");
       return;
     }
 
-    if (parseISO(startDate) === parseISO(endDate) && startTime === endTime) {
+    if (
+      parseISO(startDate).getTime() === parseISO(endDate).getTime() &&
+      startTime === endTime
+    ) {
       setError("Start and end time cannot be the same");
       return;
     }
 
-    if (parseISO(startDate) < startOfDay(new Date())) {
+    if (
+      startTime <
+      new Date().toISOString().split("T")[1].split(".")[0].slice(0, 5)
+    ) {
+      setError("Start time cannot be in the past");
+      return;
+    }
+
+    if (
+      endTime < new Date().toISOString().split("T")[1].split(".")[0].slice(0, 5)
+    ) {
+      setError("End time cannot be in the past");
+      return;
+    }
+
+    if (
+      startTime < "00:00" ||
+      startTime > "23:59" ||
+      endTime < "00:00" ||
+      endTime > "23:59"
+    ) {
+      setError("Time must be between 00:00 and 23:59");
+      return;
+    }
+
+    if (parseISO(startTime).getTime() < startOfDay(new Date()).getTime()) {
+      setError("Start time cannot be in the past");
+      return;
+    }
+
+    if (parseISO(startDate).getTime() < startOfDay(new Date()).getTime()) {
       setError("Start date cannot be in the past");
       return;
     }
 
-    if (parseISO(endDate) < startOfDay(new Date())) {
+    if (parseISO(endDate).getTime() < startOfDay(new Date()).getTime()) {
       setError("End date cannot be in the past");
       return;
     }
