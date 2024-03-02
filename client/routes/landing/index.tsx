@@ -311,7 +311,7 @@ export const Landing = () => {
                 </div>
               </div>
               <div className={styles.header}>
-                <h2>My Votes</h2>
+                <h2>My watch list</h2>
               </div>
               <Search
                 labelText={"Search for an election"}
@@ -399,7 +399,7 @@ export const Landing = () => {
                 </VoteModalCards>
               )}
               <div className={styles.header}>
-                <h2>My past votes</h2>
+                <h2>My elections</h2>
               </div>
               <Search
                 labelText={"Search for an election"}

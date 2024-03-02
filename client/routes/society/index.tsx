@@ -256,7 +256,7 @@ export const Society = () => {
               <div className={styles.join}>
                 <div className={styles.cardContainer}>
                   <div className={styles.outerContainer}>
-                    {Object.keys(filteredSocieties).length >= 0 ? (
+                    {Object.keys(filteredSocieties).length > 0 ? (
                       Object.keys(filteredSocieties)
                         .sort()
                         .map(subject => (

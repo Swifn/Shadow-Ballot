@@ -404,7 +404,7 @@ export const Voter = () => {
                         }}
                         renderIcon={UserFollow}
                         kind={"tertiary"}
-                        disabled={election.electionStatus}
+                        disabled={election.end < new Date().toISOString()}
                       >
                         Add candidate
                       </Button>
@@ -417,7 +417,11 @@ export const Voter = () => {
                         }
                         renderIcon={Unlocked}
                         kind={"primary"}
-                        disabled={election.electionStatus}
+                        disabled={
+                          (!election.electionStatus &&
+                            election.end < new Date().toISOString()) ||
+                          election.electionStatus
+                        }
                       >
                         Open election
                       </Button>
@@ -479,6 +483,7 @@ export const Voter = () => {
                         onClick={() => {
                           toggleModal();
                           setSelectedElection(null);
+                          setModalContent(null);
                         }}
                         renderIcon={Close}
                         kind={"danger"}
@@ -504,6 +509,7 @@ export const Voter = () => {
                     onClick={() => {
                       toggleModal();
                       setSelectedElection(null);
+                      setModalContent(null);
                     }}
                     renderIcon={Close}
                     kind={"danger"}
