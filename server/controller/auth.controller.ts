@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthConfig } from "../configs/auth.config.js";
 import { Config } from "../configs/config.js";
-import { Voter } from "../models/index.js";
+import { Election, Society, Voter } from "../models/index.js";
 import * as HTTP from "../utils/magicNumbers.js";
 import CryptoJS from "crypto-js";
 import { Request, Response } from "express";
@@ -120,4 +120,16 @@ export const signIn = async (req: Request, res: Response) => {
     id: voter.voterId,
     token,
   });
+};
+
+export const bentoGridInformation = async (req: Request, res: Response) => {
+  const memberNumber = await Voter.count();
+  const electionNumber = await Election.count();
+  const societyNumber = await Society.count();
+
+  console.log(memberNumber);
+
+  return res
+    .status(HTTP.STATUS_OK)
+    .send({ memberNumber, electionNumber, societyNumber });
 };

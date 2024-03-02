@@ -29,6 +29,7 @@ import {
   Upload,
   FaceAdd,
   TrashCan,
+  CheckmarkOutline,
 } from "@carbon/icons-react";
 import { ElectionModal } from "../../components/election-modal";
 import { Routes } from "../index";
@@ -962,9 +963,9 @@ export const SocietyPage = () => {
                         <div>
                           <Button
                             size={"sm"}
-                            kind={"danger--tertiary"}
-                            renderIcon={TrashCan}
-                            onClick={() => setDeleteMember(member.memberId)}
+                            kind={"danger--ghost"}
+                            renderIcon={Close}
+                            onClick={() => setEditingMemberId(null)}
                             hasIconOnly={true}
                           />
                           <Button
@@ -972,6 +973,13 @@ export const SocietyPage = () => {
                             size={"sm"}
                             kind={"ghost"}
                             renderIcon={Save}
+                            hasIconOnly={true}
+                          />
+                          <Button
+                            size={"sm"}
+                            kind={"danger--tertiary"}
+                            renderIcon={TrashCan}
+                            onClick={() => setDeleteMember(member.memberId)}
                             hasIconOnly={true}
                           />
                         </div>
@@ -1119,13 +1127,24 @@ export const SocietyPage = () => {
                 <form onSubmit={createMemberSubmit} ref={createMemberForm}>
                   <h6>Add a team member</h6>
                   <div className={styles.memberPicture}>
-                    <Button
-                      size={"lg"}
-                      kind={"tertiary"}
-                      renderIcon={Add}
-                      hasIconOnly={true}
-                      onClick={() => openFileUpload()}
-                    />
+                    {memberPicture === null && (
+                      <Button
+                        size={"lg"}
+                        kind={"tertiary"}
+                        renderIcon={Add}
+                        hasIconOnly={true}
+                        onClick={() => openFileUpload()}
+                      />
+                    )}
+                    {memberPicture !== null && (
+                      <Button
+                        size={"lg"}
+                        kind={"tertiary"}
+                        renderIcon={CheckmarkOutline}
+                        hasIconOnly={true}
+                        onClick={() => openFileUpload()}
+                      />
+                    )}
                     <span
                       style={{ backgroundImage: `url(${memberPicture})` }}
                     ></span>

@@ -2,12 +2,41 @@ import styles from "./style.module.scss";
 import { Cards } from "../cards";
 import { Button } from "@carbon/react";
 import { PortInput } from "@carbon/icons-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { get } from "../../utils/fetch";
 
 export const BentoGrid = ({ children }) => {
+  const [members, setMembers] = useState<number>();
+  const [society, setSociety] = useState<number>();
+  const [elections, setElections] = useState<number>();
+
+  const bentoGridInformation = async () => {
+    try {
+      const response = await get("auth/bento-grid-information").then(res =>
+        res.json()
+      );
+
+      setMembers(response.memberNumber);
+      setSociety(response.societyNumber);
+      setElections(response.electionNumber);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await bentoGridInformation();
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, []);
   return (
     <div className={styles.bentoGridWrapper}>
       <div className={styles.bentoGrid1}>
+        <p> </p>
         <img src="/client/assets/React-icon.png" alt="" />
       </div>
       <div className={styles.bentoGrid2}>
@@ -52,7 +81,13 @@ export const BentoGrid = ({ children }) => {
           <span>Tony</span>
         </div>
       </div>
-      <div className={styles.bentoGrid9}>9</div>
+      <div className={styles.bentoGrid9}>
+        <div>
+          <p>There are currently {members} active users</p>
+          <p>{society} active societies</p>
+          <p>and {elections} different elections</p>
+        </div>
+      </div>
       <div className={styles.bentoGrid10}>
         <p>No personal information stored</p>
       </div>
