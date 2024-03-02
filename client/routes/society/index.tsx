@@ -253,11 +253,11 @@ export const Society = () => {
                 className={styles.search}
                 placeholder={"Search for a society"}
               />
-              {joinedSocieties && (
-                <div className={styles.join}>
-                  <div className={styles.cardContainer}>
-                    <div className={styles.outerContainer}>
-                      {Object.keys(filteredSocieties)
+              <div className={styles.join}>
+                <div className={styles.cardContainer}>
+                  <div className={styles.outerContainer}>
+                    {Object.keys(filteredSocieties).length >= 0 ? (
+                      Object.keys(filteredSocieties)
                         .sort()
                         .map(subject => (
                           <div key={subject}>
@@ -280,29 +280,15 @@ export const Society = () => {
                                   </Button>
                                 </Cards>
                               ))}
-                              {filteredSocieties === null && (
-                                <div className={styles.emptyContainer}>
-                                  <p>
-                                    It doesnt look like there are any societies,
-                                    be the first to create one!
-                                  </p>
-                                  <Button
-                                    onClick={() => {
-                                      toggleModal();
-                                    }}
-                                    renderIcon={PortInput}
-                                  >
-                                    Join a Society
-                                  </Button>
-                                </div>
-                              )}
                             </div>
                           </div>
-                        ))}
-                    </div>
+                        ))
+                    ) : (
+                      <h2>No societies found, be the first to create one!</h2>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
           <ElectionModal modal={modal}>

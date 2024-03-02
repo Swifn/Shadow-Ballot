@@ -294,10 +294,10 @@ export const Landing = () => {
                         ))}
                       {filteredSocieties.length === 0 && (
                         <div className={styles.emptyContainer}>
-                          <p>
-                            It looks like you're not apart of any societies
-                            right now, click here to join one!
-                          </p>
+                          <h2>
+                            It looks like you're not in any societies right now,
+                            click here to join one!
+                          </h2>
                           <Button
                             onClick={handlePageChange}
                             renderIcon={PortInput}
@@ -353,6 +353,14 @@ export const Landing = () => {
                           </Button>
                         </Cards>
                       ))}
+                      {filteredElections.length === 0 && (
+                        <div className={styles.emptyContainer}>
+                          <h2>
+                            It looks like you've haven't voted in any elections
+                            yet, once you have, they'll be displayed here!
+                          </h2>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -432,6 +440,24 @@ export const Landing = () => {
                           </Button>
                         </Cards>
                       ))}
+                      {filteredFinishedElections.length === 0 &&
+                        filteredElections.length === 0 && (
+                          <div className={styles.emptyContainer}>
+                            <h2>
+                              It doesnt look like you've voted in any elections
+                            </h2>
+                          </div>
+                        )}
+                      {filteredFinishedElections.length === 0 &&
+                        filteredElections.length !== 0 && (
+                          <div className={styles.emptyContainer}>
+                            <h2>
+                              It doesnt look like you've voted in any elections
+                              that have finished, once you have, they'll be
+                              displayed here!
+                            </h2>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>

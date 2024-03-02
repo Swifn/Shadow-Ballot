@@ -190,8 +190,6 @@ export const getElectionResults = async (req: Request, res: Response) => {
 
     // const candidatePictureIDs = candidates.map(candidate => candidate.candidatePicture);
 
-    console.log(candidates[0].candidatePicture);
-
     // Fetch vote counts for candidates
     const votes = await Vote.findAll({
       where: { electionId },

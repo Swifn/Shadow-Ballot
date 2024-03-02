@@ -321,7 +321,9 @@ export const SocietyPage = () => {
     }
 
     if (
-      endTime < new Date().toISOString().split("T")[1].split(".")[0].slice(0, 5)
+      endTime <
+        new Date().toISOString().split("T")[1].split(".")[0].slice(0, 5) &&
+      endDate === new Date().toISOString().split("T")[0]
     ) {
       setError("End time cannot be in the past");
       return;
@@ -1046,7 +1048,7 @@ export const SocietyPage = () => {
           </div>
           {modalContent === "createElection" && (
             <ElectionModal modal={modal}>
-              <div>
+              <div className={styles.createElection}>
                 <form ref={electionForm} onSubmit={createElectionSubmit}>
                   <h3>Create Election</h3>
                   <TextInput
@@ -1066,6 +1068,9 @@ export const SocietyPage = () => {
                   <NumberInput
                     id={"kValue"}
                     label={"K-anonymity value"}
+                    helperText={
+                      "K-value represents the number of voters that will be anonymized together."
+                    }
                     size={"lg"}
                     min={1}
                     max={10}
@@ -1283,8 +1288,8 @@ export const SocietyPage = () => {
                   {getOpenElections?.length === 0 && (
                     <div>
                       <h2>
-                        There are no currently elections are open right now,
-                        check back later
+                        There are currently no open elections right now, check
+                        back later
                       </h2>
                     </div>
                   )}
@@ -1379,7 +1384,7 @@ export const SocietyPage = () => {
                     <div>
                       <h2>
                         There are currently no upcoming elections right now,
-                        check back
+                        check back later
                       </h2>
                     </div>
                   )}

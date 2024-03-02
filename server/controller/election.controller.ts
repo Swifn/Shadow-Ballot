@@ -74,7 +74,18 @@ cron.schedule("* * * * *", async () => {
     });
 
     for (const election of elections) {
-      if (
+      const candidates = await ElectionCandidates.count({
+        where: {
+          electionId: election.electionId,
+        },
+      });
+
+      if (candidates < 2) {
+        await election.destroy();
+        broadcastMessage(
+          `Election ${election.name} has been deleted due to a lack candidates`
+        );
+      } else if (
         isPast(election.start) &&
         isFuture(election.end) &&
         !election.electionStatus
