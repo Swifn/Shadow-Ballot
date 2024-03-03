@@ -29,11 +29,6 @@ export const signUp = async (req: Request, res: Response) => {
       .status(HTTP.STATUS_BAD_REQUEST)
       .send({ message: "Please enter an email" });
   }
-  if (!Config.ORG_EMAIL_REGEX.test(email)) {
-    return res
-      .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "Please enter a valid Bham.ac.uk email" });
-  }
   if (!password1 && !password2)
     return res
       .status(HTTP.STATUS_BAD_REQUEST)

@@ -143,7 +143,7 @@ export const Society = () => {
     return grouped;
   };
 
-  const submit = async (event: FormEvent) => {
+  const submit = async (event) => {
     event.preventDefault();
     setFormEnabled(false);
 
@@ -152,28 +152,51 @@ export const Society = () => {
     formData.append("subjectId", selectedSubject.toString());
 
     const body = Object.fromEntries(formData.entries());
-    const response = await post("society/create", body);
 
-    const responseData = await response.json();
+    try {
+      const response = await post("society/create", body);
 
-    if (picture !== null) {
-      await postFile(
-        `society/upload-society-picture/${responseData.newSociety}`,
-        picture
-      );
+      if (response.ok) {
+        const responseData = await response.json();
+
+        if (picture !== null) {
+          await postFile(
+            `society/upload-society-picture/${responseData.newSociety}`,
+            picture
+          );
+        }
+
+        setSuccess(responseData.message);
+        setError(null);
+        toggleModal();
+        await fetchData();
+      } else {
+        const errorResponse = await response.json();
+        setSuccess(null);
+        setError(errorResponse.message);
+
+      }
+    } catch (error) {
+      // Handle network error or other unexpected errors
+      console.error(error);
+      setError("An unexpected error occurred.");
     }
+    finally {
+      setFormEnabled(true);
+      setPicture(null)
 
-    await fetchData();
-    toggleModal();
-    setFormEnabled(true);
-    await setStateBasedOnResponse(response);
+    }
   };
+
+// Remove setStateBasedOnResponse function as its logic is now integrated into submit
+
 
   const setStateBasedOnResponse = async response => {
     const responseMessage = (await response.json()).message;
     if (response.ok) {
       setSuccess(responseMessage);
       setError(null);
+      await fetchData();
     } else {
       setSuccess(null);
       setError(responseMessage);

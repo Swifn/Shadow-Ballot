@@ -99,7 +99,7 @@ export const BentoGrid = ({ children }) => {
       </div>
       <div className={styles.bentoGrid12}>
         <h3>
-          <span className={styles.text}>Websockets</span> for life notifications
+          <span className={styles.text}>Websockets</span> for live notifications
         </h3>
       </div>
       <div className={styles.bentoGrid13}>

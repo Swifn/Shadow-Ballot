@@ -72,6 +72,7 @@ export const SignIn = () => {
             labelText="Email"
             name="email"
             placeholder={Config.ORG.EMAIL_PLACEHOLDER}
+            pattern={Config.ORG.EMAIL_REGEX.source}
             invalid={error !== null}
           />
           <TextInput

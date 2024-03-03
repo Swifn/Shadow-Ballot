@@ -224,12 +224,11 @@ export const SocietyPage = () => {
       `society/create-society-member/${sid.sid}`,
       body
     );
-    const responseJson = await response.json();
-    const responseMember = responseJson.member;
 
     if (memberPicture !== null) {
+      const responseMember = await response.json();
       const fileResponse = await postFile(
-        `society/upload-society-member-picture/${responseMember}`,
+        `society/upload-society-member-picture/${responseMember.member}`,
         memberPicture
       );
       await setStateBasedOnResponse(fileResponse);
@@ -242,30 +241,39 @@ export const SocietyPage = () => {
 
   const addElectionCandidateSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    try {
 
-    const formData = new FormData(candidateForm.current ?? undefined);
+      const formData = new FormData(candidateForm.current ?? undefined);
 
-    const body = Object.fromEntries(formData.entries());
+      const body = Object.fromEntries(formData.entries());
 
-    const response = await post(
-      `election/${selectedElectionCandidate}/add-candidate`,
-      body
-    );
+      const response = await post(
+        `election/${selectedElectionCandidate}/add-candidate`,
+        body
+      );
 
-    const responseData = await response.json();
-
-    if (response.ok) {
-      if (candidatePicture !== null) {
-        const fileResponse = await postFile(
-          `election/upload-election-candidate-picture/${responseData.candidate}`,
-          candidatePicture
-        );
-        await setStateBasedOnResponse(fileResponse);
-      } else {
-        await setStateBasedOnResponse(response);
+      if (response.ok) {
+        const responseData = await response.json();
+        if (candidatePicture !== null) {
+          const fileResponse = await postFile(
+            `election/upload-election-candidate-picture/${responseData.candidate}`,
+            candidatePicture
+          );
+        }
+        setSuccess(responseData.message);
+        setSelectedElection(null);
+        await fetchData();
+        setModal(!modal);
       }
-    } else {
-      await setStateBasedOnResponse(response);
+      else{
+        const errorResponse = await response.json();
+        console.log(error);
+        setError(errorResponse.message);
+      }
+    }catch (error) {
+      console.error(error);
+    } finally{
+      setCandidatePicture(null);
     }
 
     setSelectedElection(null);
@@ -275,105 +283,111 @@ export const SocietyPage = () => {
 
   const createElectionSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    const formData = new FormData(electionForm.current ?? undefined);
-    formData.append("voterId", voterId ?? "");
-    formData.append("societyId", sid.sid ?? "");
-    formData.append("kValue", kValue.toString() ?? "");
-    formData.append("startDate", startDate);
-    formData.append("endDate", endDate);
-    formData.append("startTime", startTime);
-    formData.append("endTime", endTime);
-    formData.append("startTimeZone", startTimeZone);
-    formData.append("endTimeZone", endTimeZone);
+    try {
+      const formData = new FormData(electionForm.current ?? undefined);
+      formData.append("voterId", voterId ?? "");
+      formData.append("societyId", sid.sid ?? "");
+      formData.append("kValue", kValue.toString() ?? "");
+      formData.append("startDate", startDate);
+      formData.append("endDate", endDate);
+      formData.append("startTime", startTime);
+      formData.append("endTime", endTime);
+      formData.append("startTimeZone", startTimeZone);
+      formData.append("endTimeZone", endTimeZone);
 
-    if (!startDate || !endDate || !startTime || !endTime) {
-      setError("Please fill in all date and time fields");
-      return;
-    }
-
-    if (parseISO(startDate).getTime() > parseISO(endDate).getTime()) {
-      setError("Start date cannot be after end date");
-      return;
-    }
-
-    if (
-      parseISO(startDate).getTime() === parseISO(endDate).getTime() &&
-      startTime > endTime
-    ) {
-      setError("Start time cannot be after end time");
-      return;
-    }
-
-    if (
-      parseISO(startDate).getTime() === parseISO(endDate).getTime() &&
-      startTime === endTime
-    ) {
-      setError("Start and end time cannot be the same");
-      return;
-    }
-
-    if (
-      startTime <
-      new Date().toISOString().split("T")[1].split(".")[0].slice(0, 5)
-    ) {
-      setError("Start time cannot be in the past");
-      return;
-    }
-
-    if (
-      endTime <
-        new Date().toISOString().split("T")[1].split(".")[0].slice(0, 5) &&
-      endDate === new Date().toISOString().split("T")[0]
-    ) {
-      setError("End time cannot be in the past");
-      return;
-    }
-
-    if (
-      startTime < "00:00" ||
-      startTime > "23:59" ||
-      endTime < "00:00" ||
-      endTime > "23:59"
-    ) {
-      setError("Time must be between 00:00 and 23:59");
-      return;
-    }
-
-    if (parseISO(startTime).getTime() < startOfDay(new Date()).getTime()) {
-      setError("Start time cannot be in the past");
-      return;
-    }
-
-    if (parseISO(startDate).getTime() < startOfDay(new Date()).getTime()) {
-      setError("Start date cannot be in the past");
-      return;
-    }
-
-    if (parseISO(endDate).getTime() < startOfDay(new Date()).getTime()) {
-      setError("End date cannot be in the past");
-      return;
-    }
-
-    const body = Object.fromEntries(formData.entries());
-    const response = await post("election/create", body);
-
-    if (response.ok) {
-      const responseData = await response.json();
-
-      // Only proceed with file upload if the previous operation was successful
-      if (electionPicture !== null) {
-        const fileResponse = await postFile(
-          `election/upload-election-picture/${responseData.newElection}`,
-          electionPicture
-        );
-        await setStateBasedOnResponse(fileResponse); // Handle file upload response
-      } else {
-        await setStateBasedOnResponse(response); // Handle initial post response
+      if (!startDate || !endDate || !startTime || !endTime) {
+        setError("Please fill in all date and time fields");
+        return;
       }
-      await fetchData();
-      toggleModal();
-    } else {
-      await setStateBasedOnResponse(response); // Handle initial failed post response
+
+      if (parseISO(startDate).getTime() > parseISO(endDate).getTime()) {
+        setError("Start date cannot be after end date");
+        return;
+      }
+
+      if (
+        parseISO(startDate).getTime() === parseISO(endDate).getTime() &&
+        startTime > endTime
+      ) {
+        setError("Start time cannot be after end time");
+        return;
+      }
+
+      if (
+        parseISO(startDate).getTime() === parseISO(endDate).getTime() &&
+        startTime === endTime
+      ) {
+        setError("Start and end time cannot be the same");
+        return;
+      }
+
+      if (
+        startTime <
+        new Date().toISOString().split("T")[1].split(".")[0].slice(0, 5) && startDate === new Date().toISOString().split("T")[0]
+      ) {
+        setError("Start time cannot be in the past");
+        return;
+      }
+
+      if (
+        endTime <
+        new Date().toISOString().split("T")[1].split(".")[0].slice(0, 5) &&
+        endDate === new Date().toISOString().split("T")[0]
+      ) {
+        setError("End time cannot be in the past");
+        return;
+      }
+
+      if (
+        startTime < "00:00" ||
+        startTime > "23:59" ||
+        endTime < "00:00" ||
+        endTime > "23:59"
+      ) {
+        setError("Time must be between 00:00 and 23:59");
+        return;
+      }
+
+      if (parseISO(startTime).getTime() < startOfDay(new Date()).getTime()) {
+        setError("Start time cannot be in the past");
+        return;
+      }
+
+      if (parseISO(startDate).getTime() < startOfDay(new Date()).getTime()) {
+        setError("Start date cannot be in the past");
+        return;
+      }
+
+      if (parseISO(endDate).getTime() < startOfDay(new Date()).getTime()) {
+        setError("End date cannot be in the past");
+        return;
+      }
+
+      const body = Object.fromEntries(formData.entries());
+      const response = await post("election/create", body);
+
+      if (response.ok) {
+        const responseData = await response.json();
+
+        if (electionPicture !== null) {
+          const fileResponse = await postFile(
+            `election/upload-election-picture/${responseData.newElection}`,
+            electionPicture
+          );
+        }
+
+        setSuccess(responseData.message);
+        setSelectedElection(null);
+        await fetchData();
+        setModal(!modal);
+      }
+      else{
+        const errorResponse = await response.json();
+        console.log(error);
+        setError(errorResponse.message);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -595,7 +609,6 @@ export const SocietyPage = () => {
           );
         }
         await setStateBasedOnResponse(response);
-        setSelectedCandidate(null);
       } catch (error) {
         console.log(error);
       }
@@ -657,26 +670,14 @@ export const SocietyPage = () => {
   };
 
   const setStateBasedOnResponse = async response => {
-    try {
-      const responseBody = await response.json(); // Await the parsing of the JSON body
-      console.log("Response Body:", responseBody); // Debugging
-
-      if (response.ok) {
-        setSuccess(responseBody.message); // Assuming success messages are always present
-        setError(null);
-      } else {
-        setSuccess(null);
-        setError(responseBody.message || "An unknown error occurred"); // Fallback error message
-      }
-    } catch (error) {
-      console.error("Error parsing response:", error);
-      setError("Failed to process the response."); // Fallback error handler
-    } finally {
-      // Clean up actions like resetting form data can go here
-      setMemberPicture(null);
-      setElectionPicture(null);
-      setCandidatePicture(null);
-      setPicture(null);
+    const responseMessage = (await response.json()).message;
+    if (response.ok) {
+      setSuccess(responseMessage);
+      setError(null);
+      await fetchData();
+    } else {
+      setSuccess(null);
+      setError(responseMessage);
     }
   };
 
@@ -1324,6 +1325,7 @@ export const SocietyPage = () => {
                           toggleModal();
                           setModalContent(null);
                           setSelectedElection(null);
+                          setSelectedCandidate(null);
                         }}
                         renderIcon={Close}
                         kind={"danger"}
