@@ -78,11 +78,6 @@ export const signIn = async (req: Request, res: Response) => {
       .status(HTTP.STATUS_BAD_REQUEST)
       .send({ message: "Please enter an email" });
   }
-  if (!Config.ORG_EMAIL_REGEX.test(email)) {
-    return res
-      .status(HTTP.STATUS_BAD_REQUEST)
-      .send({ message: "Please enter a valid Bham.ac.uk email" });
-  }
   if (!password)
     return res
       .status(HTTP.STATUS_BAD_REQUEST)

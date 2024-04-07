@@ -49,7 +49,6 @@ export const init = sequelize =>
       },
       description: {
         type: DataTypes.STRING,
-        allowNull: false,
       },
       candidatePicture: {
         type: DataTypes.INTEGER,

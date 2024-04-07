@@ -1070,7 +1070,7 @@ export const SocietyPage = () => {
                     id={"kValue"}
                     label={"K-anonymity value"}
                     helperText={
-                      "K-value represents the number of voters that will be anonymized together."
+                      "The number of votes need to be cast before the results are revealed. Default is 2."
                     }
                     size={"lg"}
                     min={1}
@@ -1403,21 +1403,18 @@ export const SocietyPage = () => {
                             labelText={"Candidate Name"}
                             type={"text"}
                             name={"candidateName"}
-                            required={true}
                           />
                           <TextInput
                             id={"candidateName"}
                             labelText={"Alias"}
                             type={"text"}
                             name={"candidateAlias"}
-                            required={true}
                           />
                           <TextInput
                             id={"Description"}
                             labelText={"Description"}
                             type={"text"}
                             name={"description"}
-                            required={true}
                           />
                           <FileUploader
                             buttonLabel={"Upload a picture"}

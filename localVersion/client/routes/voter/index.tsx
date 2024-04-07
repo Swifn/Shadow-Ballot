@@ -460,7 +460,6 @@ export const Voter = () => {
                           labelText={"Alias"}
                           type={"text"}
                           name={"candidateAlias"}
-                          required={true}
                         />
                         <TextInput
                           id={"Description"}

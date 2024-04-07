@@ -15,21 +15,16 @@ export const del = (url: string, body?: any) =>
   req("DELETE", url, body, undefined);
 
 const req = async (method: string, url: string, body?: any, file?: any) => {
-  const token = localStorage.getItem(Config.STORAGE.JWT_TOKEN_KEY);
   const headers = !file
     ? {
         "Content-Type": "application/json",
       }
     : {};
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
   if (file) {
     body = new FormData();
     body.append("file", file);
     console.log(file);
   }
-  console.log(`METHOD: ${method}\nURL: ${url}\nBODY: ${body}`);
 
   return await fetch(`http://localhost:8000/${url}`, {
     method,
